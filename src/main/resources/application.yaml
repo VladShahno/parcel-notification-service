@@ -1,0 +1,16 @@
+server:
+  port: 8080
+  error:
+    include-message: always
+  servlet:
+    context-path: /parcel-notification-service
+
+novaposhta-api:
+  base-url: https://api.novaposhta.ua/v2.0/json/
+
+web.client:
+  http-client-response-timeout: ${HTTP_CLIENT_RESPONSE_TIMEOUT:60}
+  connection-provider-max-idle-time: ${CONNECTION_PROVIDER_MAX_IDLE_TIME:60}
+  connection-provider-max-life-time: ${CONNECTION_PROVIDER_MAX_LIFE_TIME:120}
+  connection-provider-pending-acquire-timeout: ${CONNECTION_PROVIDER_PENDING_ACQUIRE_TIMEOUT:60}
+  connection-provider-evict-in-background-timeout: ${CONNECTION_PROVIDER_EVICT_IN_BACKGROUND_TIMEOUT:120}
