@@ -160,6 +160,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
             .methodProperties(methodProperties)
             .build();
 
+        // TODO novaposhta allows to view up to 100 elements at the same time, need to implement cyclic request processing in the future
         var fullParcelsData = getDocumentsStatus(documentStatusRequest);
 
         return filterParcelsByMaxStorageDays(fullParcelsData.getData());
