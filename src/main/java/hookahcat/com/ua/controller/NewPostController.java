@@ -2,6 +2,7 @@ package hookahcat.com.ua.controller;
 
 import hookahcat.com.ua.model.request.DocumentListRequest;
 import hookahcat.com.ua.model.request.DocumentsStatusRequest;
+import hookahcat.com.ua.model.response.DocumentDataResponse;
 import hookahcat.com.ua.model.response.DocumentListDataResponse;
 import hookahcat.com.ua.model.response.DocumentListResponse;
 import hookahcat.com.ua.model.response.DocumentsStatusResponse;
@@ -66,9 +67,23 @@ public class NewPostController {
     @Operation(summary = "Endpoint will return all the EN numbers that were created in the the personal account for last month")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Document list received successfully",
-            content = {@Content(schema = @Schema(implementation = DocumentListResponse.class))}),
+            content = {
+                @Content(schema = @Schema(implementation = DocumentListDataResponse.class))}),
     })
-    public List<DocumentListDataResponse> getArrivedParcelsForLastMonth(@RequestParam String apiKey) {
+    public List<DocumentListDataResponse> getArrivedParcelsForLastMonth(
+        @RequestParam String apiKey) {
         return newPostServiceProxy.getArrivedParcelsForLastMonth(apiKey);
+    }
+
+    @GetMapping("/parcels-status/unreceived")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Endpoint allows to view information about the status of the not received parcels")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Document list received successfully",
+            content = {@Content(schema = @Schema(implementation = DocumentDataResponse.class))}),
+    })
+    public List<DocumentDataResponse> getUnreceivedParcels(@RequestParam String apiKey,
+        @RequestParam String phoneNumber) {
+        return newPostServiceProxy.getUnreceivedParcels(apiKey, phoneNumber);
     }
 }

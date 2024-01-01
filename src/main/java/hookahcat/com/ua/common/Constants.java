@@ -8,6 +8,7 @@ public class Constants {
     public static final int WEB_CLIENT_BUFFER_SIZE = 16 * 1024 * 1024;
     public static final String ZERO = "0";
     public static final String ONE = "1";
+    public static final int MAX_STORAGE_DAYS = 4;
 
     @UtilityClass
     public class CalledMethods {

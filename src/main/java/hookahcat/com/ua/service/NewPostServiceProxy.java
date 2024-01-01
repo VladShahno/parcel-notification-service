@@ -2,6 +2,7 @@ package hookahcat.com.ua.service;
 
 import hookahcat.com.ua.model.request.DocumentListRequest;
 import hookahcat.com.ua.model.request.DocumentsStatusRequest;
+import hookahcat.com.ua.model.response.DocumentDataResponse;
 import hookahcat.com.ua.model.response.DocumentListDataResponse;
 import hookahcat.com.ua.model.response.DocumentListResponse;
 import hookahcat.com.ua.model.response.DocumentsStatusResponse;
@@ -14,4 +15,6 @@ public interface NewPostServiceProxy {
     DocumentListResponse getDocumentList(DocumentListRequest documentListRequest);
 
     List<DocumentListDataResponse> getArrivedParcelsForLastMonth(String apiKey);
+
+    List<DocumentDataResponse> getUnreceivedParcels(String apiKey, String senderPhoneNumber);
 }
