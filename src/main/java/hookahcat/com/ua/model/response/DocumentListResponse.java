@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class DocumentListResponse {
+
     @JsonProperty("success")
     private boolean success;
 

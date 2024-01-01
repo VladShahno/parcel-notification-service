@@ -2,6 +2,7 @@ package hookahcat.com.ua.controller;
 
 import hookahcat.com.ua.model.request.DocumentListRequest;
 import hookahcat.com.ua.model.request.DocumentsStatusRequest;
+import hookahcat.com.ua.model.response.DocumentListDataResponse;
 import hookahcat.com.ua.model.response.DocumentListResponse;
 import hookahcat.com.ua.model.response.DocumentsStatusResponse;
 import hookahcat.com.ua.service.NewPostServiceProxy;
@@ -12,14 +13,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,5 +59,16 @@ public class NewPostController {
     public DocumentListResponse getDocumentList(
         @RequestBody @Valid DocumentListRequest documentListRequest) {
         return newPostServiceProxy.getDocumentList(documentListRequest);
+    }
+
+    @GetMapping("/document-list/month")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Endpoint will return all the EN numbers that were created in the the personal account for last month")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Document list received successfully",
+            content = {@Content(schema = @Schema(implementation = DocumentListResponse.class))}),
+    })
+    public List<DocumentListDataResponse> getArrivedParcelsForLastMonth(@RequestParam String apiKey) {
+        return newPostServiceProxy.getArrivedParcelsForLastMonth(apiKey);
     }
 }
