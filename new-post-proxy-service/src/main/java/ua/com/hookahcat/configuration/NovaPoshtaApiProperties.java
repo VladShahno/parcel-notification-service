@@ -10,4 +10,6 @@ import org.springframework.stereotype.Component;
 public class NovaPoshtaApiProperties {
 
     private String baseUrl;
+    private String apiKey;
+    private String senderPhoneNumber;
 }

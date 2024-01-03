@@ -125,7 +125,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
   public ResponseEntity<Object> handleCustomExceptions(final Exception ex, final Locale locale) {
     log.error(ex.getMessage(), ex);
     String errorMessage = getMessage(locale, ex.getMessage(), null);
-    return new ResponseEntity<>(new ErrorDetails(errorMessage), HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(new ErrorDetails(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @ExceptionHandler({MultipleIllegalArgumentsException.class})

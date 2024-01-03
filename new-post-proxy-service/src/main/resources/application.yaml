@@ -7,6 +7,8 @@ server:
 
 novaposhta-api:
   base-url: https://api.novaposhta.ua/v2.0/json/
+  api-key: ${API_KEY:1e10cc2afc177c626ec671616e7a6468}
+  sender-phone-number: ${SENDER_PHONE_NUMBER:380631819000}
 
 web.client:
   http-client-response-timeout: ${HTTP_CLIENT_RESPONSE_TIMEOUT:60}
