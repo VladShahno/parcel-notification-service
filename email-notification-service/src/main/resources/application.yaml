@@ -15,11 +15,6 @@ spring:
 
 email-notification:
   subject: Unreceived parcels found!
-  recipient: vlad.shahno11@gmail.com
-  sender: shakhno2022@gmail.com
+  recipient: shahnovlad@gmail.com
+  sender: vlad.shahno11@gmail.com
   message: This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.
-
-csv:
-  response-headers: ${CSV_EXPORT_RESPONSE_HEADERS:ЕН,ПІБ отримувача з накладної,Номер телефону отримувача,Місто отримувача,Номер відділення отримувача,Фактична дата доставки,Сума зворотної доставки,Поточне значення суми грошового переказу,Фактична вага з ЕН,Вартість доставки,Ідентифікатор платника,Дата початку платного зберігання,Статус оплати ЕН,Сума оплати по ЕН,Дата повернення вантажу,Дата початку зберігання (після не отримання),Оголошена вартість,Номер бронювання комірки поштомату,День зберігання вантажу,Вартість зберігання}
-  response-fields: ${CSV_EXPORT_RESPONSE_FIELDS:Number,RecipientFullName,PhoneRecipient,CityRecipient,WarehouseRecipientNumber,ActualDeliveryDate,SumReturnDelivery,CurrentAmountTransferGM,FactualWeight,DeliveryCost,PayerType,DatePayedKeeping,ExpressWaybillPaymentStatus,ExpressWaybillAmountToPay,DateReturnCargo,DateFirstDayStorage,AnnouncedPrice,PostomatV3CellReservationNumber,DaysStorageCargo,StoragePrice}
-  export-csv-limit: 500

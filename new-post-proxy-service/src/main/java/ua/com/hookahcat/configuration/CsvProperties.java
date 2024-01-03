@@ -1,4 +1,4 @@
-package ua.com.hookahcat.notification.configuration;
+package ua.com.hookahcat.configuration;
 
 import java.util.List;
 import lombok.Data;

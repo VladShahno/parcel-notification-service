@@ -1,4 +1,4 @@
-package ua.com.hookahcat.notification.service.scheduler;
+package ua.com.hookahcat.service.scheduler;
 
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
 
@@ -13,9 +13,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.csvsdk.service.CsvService;
-import ua.com.hookahcat.notification.configuration.CsvProperties;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.model.EmailNotificationData;
 import ua.com.hookahcat.notification.service.EmailNotificationService;
@@ -40,6 +40,7 @@ public class ParcelSearchingJob {
         var unreceivedParcelsData = newPostServiceProxy.getUnreceivedParcels(
             novaPoshtaApiProperties.getApiKey(),
             novaPoshtaApiProperties.getSenderPhoneNumber());
+        log.info("Found {} unreceived parcels", unreceivedParcelsData.size());
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
             var exportedParcelsData = csvService.exportData(unreceivedParcelsData,
@@ -64,7 +65,7 @@ public class ParcelSearchingJob {
 
     private static File generateFile(byte[] exportedParcelsData) {
         var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
-        var fileName = "Not received parcels [" + todayDate + "].txt";
+        var fileName = "Not received parcels [" + todayDate + "].csv";
         var file = new File(fileName);
         try {
             FileUtils.writeByteArrayToFile(file, exportedParcelsData);
