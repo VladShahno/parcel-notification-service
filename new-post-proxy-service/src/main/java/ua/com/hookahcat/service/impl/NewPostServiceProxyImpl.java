@@ -11,6 +11,18 @@ import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
 import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED_PARCEL_LOCKER;
 import static ua.com.hookahcat.common.Constants.ZERO;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
 import ua.com.hookahcat.model.request.DocumentListRequest;
@@ -21,20 +33,8 @@ import ua.com.hookahcat.model.response.DocumentDataResponse;
 import ua.com.hookahcat.model.response.DocumentListDataResponse;
 import ua.com.hookahcat.model.response.DocumentListResponse;
 import ua.com.hookahcat.model.response.DocumentsStatusResponse;
-import ua.com.hookahcat.reststarter.exception.NotFoundException;
 import ua.com.hookahcat.service.NewPostServiceProxy;
 import ua.com.hookahcat.service.ProxyService;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @Slf4j
@@ -144,7 +144,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         List<DocumentListDataResponse> arrivedParcelsData,
         String senderPhoneNumber) {
         if (CollectionUtils.isEmpty(arrivedParcelsData)) {
-            throw new NotFoundException("Not found arrived parcels!");
+            return Collections.emptyList();
         }
 
         var methodProperties = TrackingDocumentMethodProperties.builder()

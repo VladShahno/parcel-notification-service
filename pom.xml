@@ -20,6 +20,7 @@
   <modules>
     <module>warehouse-rest-starter</module>
     <module>new-post-proxy-service</module>
+    <module>email-notification-service</module>
   </modules>
 
   <properties>
@@ -29,6 +30,7 @@
     <swagger-annotations.version>2.2.19</swagger-annotations.version>
     <springdoc.version>2.0.2</springdoc.version>
     <commons-collections4.version>4.4</commons-collections4.version>
+    <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
   </properties>
 
   <dependencies>
@@ -40,7 +42,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-configuration-processor</artifactId>
@@ -78,6 +79,11 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
       <version>${commons-collections4.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>${logstash-logback-encoder.version}</version>
     </dependency>
   </dependencies>
 

@@ -1,0 +1,18 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        transport:
+          protocol: smtp
+
+email-notification:
+  subject: Unreceived parcels found!
+  recipient: vlad.shahno11@gmail.com
+  sender: shahnovlad@gmail.com
+  message: This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.
