@@ -64,7 +64,8 @@ public class NewPostController {
 
     @GetMapping("/document-list/month")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Endpoint will return all the EN numbers that were created in the the personal account for last month")
+    @Operation(summary = "Endpoint will return all the EN numbers that were created in the the personal account for last month "
+        + "with status Прибув на відділення or Прибув на відділення (завантажено в Поштомат)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Document list received successfully",
             content = {
@@ -77,7 +78,7 @@ public class NewPostController {
 
     @GetMapping("/parcels-status/unreceived")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Endpoint allows to view information about the status of the not received parcels")
+    @Operation(summary = "Endpoint allows to view information about the status of the not received parcels (unreceived for 4 days)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Document list received successfully",
             content = {@Content(schema = @Schema(implementation = DocumentDataResponse.class))}),
