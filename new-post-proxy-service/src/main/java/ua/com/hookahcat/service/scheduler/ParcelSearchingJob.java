@@ -34,7 +34,7 @@ public class ParcelSearchingJob {
     private final CsvService csvService;
     private final NewPostServiceProxy newPostServiceProxy;
 
-    @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "${scheduled.parcel-search-job}")
     public void searchNotReceivedParcels() {
         log.info("Start scheduler for searching not received parcels...");
         var unreceivedParcelsData = newPostServiceProxy.getUnreceivedParcels(
