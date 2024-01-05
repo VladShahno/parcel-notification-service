@@ -19,9 +19,9 @@
 
   <modules>
     <module>warehouse-rest-starter</module>
-    <module>new-post-proxy-service</module>
-    <module>email-notification-service</module>
     <module>warehouse-csv-sdk</module>
+    <module>email-notification-service</module>
+    <module>new-post-proxy-service</module>
   </modules>
 
   <properties>
