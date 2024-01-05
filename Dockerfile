@@ -4,6 +4,14 @@ COPY . .
 RUN mvn clean install
 
 FROM openjdk:17
-COPY --from=build /home/app/target/*.jar /usr/app/parcel-notification-service.jar
+WORKDIR /usr/app
+
+COPY --from=build /home/app/warehouse-rest-starter/target/*.jar /usr/app/warehouse-rest-starter.jar
+COPY --from=build /home/app/new-post-proxy-service/target/*.jar /usr/app/new-post-proxy-service.jar
+COPY --from=build /home/app/email-notification-service/target/*.jar /usr/app/email-notification-service.jar
+COPY --from=build /home/app/warehouse-csv-sdk/target/*.jar /usr/app/warehouse-csv-sdk.jar
+
+COPY --from=build /home/app/new-post-proxy-service/target/*.jar /usr/app/app.jar
+
 EXPOSE 8080
-CMD java -jar -DskipTests /usr/app/parcel-notification-service.jar
+ENTRYPOINT ["java","-jar","/usr/app/app.jar"]
