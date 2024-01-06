@@ -39,7 +39,7 @@ spring:
 
 email-notification:
   subject: ${EMAIL_SUBJECT:Unreceived parcels found!}
-  recipient: ${EMAIL_RECIPIENT:shahnovlad@gmail.com}
+  recipient: ${EMAIL_RECIPIENT:manko94@ukr.net}
   sender: ${EMAIL_SENDER:vlad.shahno11@gmail.com}
   message: ${EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
 
