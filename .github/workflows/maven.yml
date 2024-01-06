@@ -22,7 +22,7 @@ jobs:
     - name: Build with Maven
       run: |
            mvn clean install
-           mkdir artifacts && cp target/*.jar artifacts
+           mkdir artifacts && cp /usr/app/*.jar artifacts
            cd artifacts && ls
     - name: Save artifact
       uses: actions/upload-artifact@v2
