@@ -43,7 +43,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/parcel-notification-service:latest
+        tags: vladshakhno/parcel-notification-service:latest
   deploy:
     needs: build
     runs-on: [aws-ec2]
