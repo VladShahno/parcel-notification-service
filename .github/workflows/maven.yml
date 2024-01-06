@@ -21,9 +21,10 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: |
-           mvn clean install
-           mkdir artifacts && cp /usr/app/*.jar artifacts
-           cd artifacts && ls
+          mvn clean install
+          mkdir -p artifacts
+          find . -name '*.jar' -exec cp {} artifacts \;
+          cd artifacts && ls
     - name: Save artifact
       uses: actions/upload-artifact@v2
       with:
