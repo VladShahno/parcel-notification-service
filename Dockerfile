@@ -1,7 +1,7 @@
 FROM maven:3.6.3-openjdk-17 AS build
 WORKDIR /home/app
 COPY . .
-RUN mvn clean install -DskipTests
+RUN mvn clean install
 
 FROM openjdk:17
 WORKDIR /usr/app

@@ -7,8 +7,8 @@ server:
 
 novaposhta-api:
   base-url: ${API_BASE_URL:https://api.novaposhta.ua/v2.0/json/}
-  api-key: ${API_KEY:1e10cc2afc177c626ec671616e7a6468}
-  sender-phone-number: ${SENDER_PHONE_NUMBER:380631819000}
+  api-key: ${API_KEY:}
+  sender-phone-number: ${SENDER_PHONE_NUMBER:}
 
 web.client:
   http-client-response-timeout: ${HTTP_CLIENT_RESPONSE_TIMEOUT:60}
@@ -34,13 +34,13 @@ spring:
             enable: true
         transport:
           protocol: smtp
-    password: ${SMTP_PASSWORD:efih ttao vgns opqf}
-    username: ${SMTP_LOGIN:vlad.shahno11@gmail.com}
+    password: ${SMTP_PASSWORD:}
+    username: ${SMTP_LOGIN:}
 
 email-notification:
   subject: ${EMAIL_SUBJECT:Unreceived parcels found!}
-  recipient: ${EMAIL_RECIPIENT:manko94@ukr.net}
-  sender: ${EMAIL_SENDER:vlad.shahno11@gmail.com}
+  recipient: ${EMAIL_RECIPIENT:}
+  sender: ${EMAIL_SENDER:}
   message: ${EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
 
 scheduled:
