@@ -27,13 +27,14 @@ public class Constants {
     @UtilityClass
     public class StateNames {
 
-        public static final String ARRIVED = "Прибув на відділення";
+        public static final String ARRIVED = "Прибув у відділення";
         public static final String ARRIVED_PARCEL_LOCKER = "Прибув на відділення (завантажено в Поштомат)";
     }
 
     @UtilityClass
     public class Patterns {
 
-        public static final String DATE_TIME_PATTERN = "dd.MM.yyyy";
+        public static final String DATE_PATTERN = "dd.MM.yyyy";
+        public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     }
 }

@@ -1,0 +1,52 @@
+server:
+  port: 8181
+  error:
+    include-message: always
+  servlet:
+    context-path: /hookah-cat-pns
+
+telegram-bot:
+  hookahcat-pns:
+    bot-token: ${HOOKAH_CAT_PNS_TOKEN:}
+    bot-username: ${HOOKAH_CAT_PNS_USERNAME:}
+
+novaposhta-api:
+  base-url: ${API_BASE_URL:https://api.novaposhta.ua/v2.0/json/}
+  api-key: ${API_KEY:}
+  sender-phone-number: ${SENDER_PHONE_NUMBER:}
+
+web.client:
+  http-client-response-timeout: ${HTTP_CLIENT_RESPONSE_TIMEOUT:60}
+  connection-provider-max-idle-time: ${CONNECTION_PROVIDER_MAX_IDLE_TIME:60}
+  connection-provider-max-life-time: ${CONNECTION_PROVIDER_MAX_LIFE_TIME:120}
+  connection-provider-pending-acquire-timeout: ${CONNECTION_PROVIDER_PENDING_ACQUIRE_TIMEOUT:60}
+  connection-provider-evict-in-background-timeout: ${CONNECTION_PROVIDER_EVICT_IN_BACKGROUND_TIMEOUT:120}
+
+csv:
+  response-headers: ${CSV_EXPORT_RESPONSE_HEADERS:ЕН,ПІБ отримувача з накладної,Номер телефону отримувача,Місто отримувача,Номер відділення отримувача,Фактична дата доставки,Сума зворотної доставки,Поточне значення суми грошового переказу,Фактична вага з ЕН,Вартість доставки,Ідентифікатор платника,Дата початку платного зберігання,Статус оплати ЕН,Сума оплати по ЕН,Дата повернення вантажу,Дата початку зберігання (після не отримання),Оголошена вартість,Номер бронювання комірки поштомату,День зберігання вантажу,Вартість зберігання}
+  response-fields: ${CSV_EXPORT_RESPONSE_FIELDS:Number,RecipientFullNameEW,PhoneRecipient,CityRecipient,WarehouseRecipientNumber,ActualDeliveryDate,RedeliverySum,LastAmountTransferGM,FactualWeight,DocumentCost,PayerType,DatePayedKeeping,ExpressWaybillPaymentStatus,ExpressWaybillAmountToPay,DateReturnCargo,DateFirstDayStorage,AnnouncedPrice,PostomatV3CellReservationNumber,DaysStorageCargo,StoragePrice}
+  export-csv-limit: 500
+
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        transport:
+          protocol: smtp
+    password: ${SMTP_PASSWORD:}
+    username: ${SMTP_LOGIN:}
+
+email-notification:
+  subject: ${EMAIL_SUBJECT:Unreceived parcels found!}
+  recipient: ${EMAIL_RECIPIENT:}
+  sender: ${EMAIL_SENDER:}
+  message: ${EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
+
+scheduled:
+  parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 * * ?}

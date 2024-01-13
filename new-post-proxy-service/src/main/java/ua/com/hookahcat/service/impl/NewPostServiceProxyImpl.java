@@ -6,12 +6,13 @@ import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS;
 import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ONE;
+import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
 import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
-import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED_PARCEL_LOCKER;
 import static ua.com.hookahcat.common.Constants.ZERO;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,9 +91,9 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
 
         var todayLocalDate = LocalDate.now();
         var todayFormatted = todayLocalDate.format(
-            DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
+            DateTimeFormatter.ofPattern(DATE_PATTERN));
         var lastMonthFormatted = todayLocalDate.minusMonths(Integer.parseInt(ONE))
-            .format(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
+            .format(DateTimeFormatter.ofPattern(DATE_PATTERN));
 
         var documentRequest = generateDocumentListRequest(apiKey, lastMonthFormatted,
             todayFormatted);
@@ -136,8 +137,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
 
     private boolean isArrived(DocumentListDataResponse response) {
         var stateName = response.getStateName();
-        return ARRIVED.equalsIgnoreCase(stateName) || ARRIVED_PARCEL_LOCKER.equalsIgnoreCase(
-            stateName);
+        return ARRIVED.equalsIgnoreCase(stateName);
     }
 
     private List<DocumentDataResponse> filterUnreceivedParcels(
@@ -168,15 +168,19 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
 
     private List<DocumentDataResponse> filterParcelsByMaxStorageDays(
         List<DocumentDataResponse> fullParcelsData) {
-        var todayDateTime = LocalDate.now();
+        var todayDate = LocalDate.now();
 
         return fullParcelsData.stream()
             .filter(documentDataResponse -> {
                 var deliveryDate = documentDataResponse.getActualDeliveryDate();
                 if (Objects.nonNull(deliveryDate)) {
-                    var actualDeliveryDate = LocalDate.parse(deliveryDate,
+                    var actualDeliveryDateTime = LocalDateTime.parse(deliveryDate,
                         DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
-                    return todayDateTime.minusDays(MAX_STORAGE_DAYS).isAfter(actualDeliveryDate);
+                    var actualDeliveryDateFormatted = actualDeliveryDateTime.toLocalDate()
+                        .format(DateTimeFormatter.ofPattern(DATE_PATTERN));
+
+                    return todayDate.minusDays(MAX_STORAGE_DAYS)
+                        .isAfter(LocalDate.parse(actualDeliveryDateFormatted, DateTimeFormatter.ofPattern(DATE_PATTERN)));
                 }
                 return false;
             })

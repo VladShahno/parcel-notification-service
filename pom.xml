@@ -22,6 +22,7 @@
     <module>warehouse-csv-sdk</module>
     <module>email-notification-service</module>
     <module>new-post-proxy-service</module>
+    <module>telegram-bot-service</module>
   </modules>
 
   <properties>

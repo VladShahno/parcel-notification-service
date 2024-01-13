@@ -1,6 +1,6 @@
 package ua.com.hookahcat.service.scheduler;
 
-import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
+import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,22 +34,42 @@ public class ParcelSearchingJob {
     private final CsvService csvService;
     private final NewPostServiceProxy newPostServiceProxy;
 
-    @Scheduled(cron = "${scheduled.parcel-search-job}")
-    public void searchNotReceivedParcels() {
-        log.info("Start scheduler for searching not received parcels...");
+//    @Scheduled(cron = "${scheduled.parcel-search-job}")
+//    public void searchUnReceivedParcels() {
+//        log.info("Start scheduler for searching not received parcels...");
+//        var exportedParcelsData = getUnReceivedParcelsCsv();
+//        sendEmailWithNotReceivedParcels(exportedParcelsData);
+//    }
+
+    public byte[] getUnReceivedParcelsCsv() {
         var unreceivedParcelsData = newPostServiceProxy.getUnreceivedParcels(
             novaPoshtaApiProperties.getApiKey(),
             novaPoshtaApiProperties.getSenderPhoneNumber());
         log.info("Found {} unreceived parcels", unreceivedParcelsData.size());
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
-            var exportedParcelsData = csvService.exportData(unreceivedParcelsData,
+            return csvService.exportData(unreceivedParcelsData,
                 csvProperties.getResponseHeaders(), csvProperties.getResponseFields());
+        }
+        return new byte[0];
+    }
 
-            if (Objects.nonNull(exportedParcelsData)) {
-                emailNotificationService.sendEmailNotification(
-                    prepareEmailNotificationData(exportedParcelsData));
-            }
+    public static File generateFile(byte[] exportedParcelsData) {
+        var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN));
+        var fileName = "Not received parcels [" + todayDate + "].csv";
+        var file = new File(fileName);
+        try {
+            FileUtils.writeByteArrayToFile(file, exportedParcelsData);
+        } catch (IOException e) {
+            throw new CustomRuntimeException(e.getMessage());
+        }
+        return file;
+    }
+
+    private void sendEmailWithNotReceivedParcels(byte[] exportedParcelsData) {
+        if (Objects.nonNull(exportedParcelsData)) {
+            emailNotificationService.sendEmailNotification(
+                prepareEmailNotificationData(exportedParcelsData));
         }
     }
 
@@ -61,17 +81,5 @@ public class ParcelSearchingJob {
             .message(emailNotificationProperties.getMessage())
             .file(generateFile(exportedParcelsData))
             .build();
-    }
-
-    private static File generateFile(byte[] exportedParcelsData) {
-        var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_TIME_PATTERN));
-        var fileName = "Not received parcels [" + todayDate + "].csv";
-        var file = new File(fileName);
-        try {
-            FileUtils.writeByteArrayToFile(file, exportedParcelsData);
-        } catch (IOException e) {
-            throw new CustomRuntimeException(e.getMessage());
-        }
-        return file;
     }
 }
