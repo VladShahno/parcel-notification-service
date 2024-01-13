@@ -1,4 +1,4 @@
-package ua.com.hookahcat.configuration;
+package ua.com.hookahcat.telegram.bot.configuration;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

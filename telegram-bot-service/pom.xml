@@ -26,7 +26,7 @@
     </dependency>
     <dependency>
       <groupId>ua.com.hookahcat</groupId>
-      <artifactId>new-post-proxy-service</artifactId>
+      <artifactId>warehouse-rest-starter</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

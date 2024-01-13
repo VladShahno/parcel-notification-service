@@ -33,6 +33,11 @@
       <artifactId>warehouse-csv-sdk</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>ua.com.hookahcat</groupId>
+      <artifactId>telegram-bot-service</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

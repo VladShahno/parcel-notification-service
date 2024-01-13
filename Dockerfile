@@ -10,6 +10,7 @@ COPY --from=build /home/app/warehouse-rest-starter/target/ /usr/app/
 COPY --from=build /home/app/new-post-proxy-service/target/ /usr/app/
 COPY --from=build /home/app/email-notification-service/target/ /usr/app/
 COPY --from=build /home/app/warehouse-csv-sdk/target/ /usr/app/
+COPY --from=build /home/app/telegram-bot-service/target/ /usr/app/
 
 EXPOSE 8080
 

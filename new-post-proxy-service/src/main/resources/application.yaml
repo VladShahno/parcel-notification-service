@@ -45,3 +45,8 @@ email-notification:
 
 scheduled:
   parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 * * ?}
+
+telegram-bot:
+  hookahcat-pns:
+    bot-token: ${HOOKAH_CAT_PNS_TOKEN:6482509948:AAEmVqZXy5MG3EZrEuMZ1wutoZ2iAbo0Fh8}
+    bot-username: ${HOOKAH_CAT_PNS_USERNAME:hookahcat_pns_bot}

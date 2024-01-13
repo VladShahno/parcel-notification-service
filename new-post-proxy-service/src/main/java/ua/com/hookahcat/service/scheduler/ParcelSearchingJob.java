@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
@@ -54,7 +53,7 @@ public class ParcelSearchingJob {
         return new byte[0];
     }
 
-    public static File generateFile(byte[] exportedParcelsData) {
+    public static File createCsvFile(byte[] exportedParcelsData) {
         var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN));
         var fileName = "Not received parcels [" + todayDate + "].csv";
         var file = new File(fileName);
@@ -79,7 +78,7 @@ public class ParcelSearchingJob {
             .sender(emailNotificationProperties.getSender())
             .subject(emailNotificationProperties.getSubject())
             .message(emailNotificationProperties.getMessage())
-            .file(generateFile(exportedParcelsData))
+            .file(createCsvFile(exportedParcelsData))
             .build();
     }
 }
