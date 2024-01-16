@@ -1,5 +1,6 @@
 package ua.com.hookahcat.service.impl;
 
+import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_FOUR;
 import static ua.com.hookahcat.service.scheduler.ParcelSearchingJob.createCsvFile;
 
 import java.io.File;
@@ -36,6 +37,6 @@ public class TelegramServiceImpl implements TelegramService {
 
     @Override
     public File getFileToSend() {
-        return createCsvFile(parcelSearchingJob.getUnReceivedParcelsCsv());
+        return createCsvFile(parcelSearchingJob.getUnReceivedParcelsCsv(MAX_STORAGE_DAYS_FOUR));
     }
 }

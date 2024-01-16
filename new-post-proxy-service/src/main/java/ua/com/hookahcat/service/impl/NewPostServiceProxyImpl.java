@@ -2,10 +2,13 @@ package ua.com.hookahcat.service.impl;
 
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_DOCUMENT_LIST;
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
-import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS;
+import static ua.com.hookahcat.common.Constants.CalledMethods.SAVE;
+import static ua.com.hookahcat.common.Constants.ModelsNames.ADDITIONAL_SERVICE;
 import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ONE;
+import static ua.com.hookahcat.common.Constants.ORDER_TYPE_CARGO_RETURN;
+import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
 import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
@@ -28,12 +31,14 @@ import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
 import ua.com.hookahcat.model.request.DocumentListRequest;
 import ua.com.hookahcat.model.request.DocumentsStatusRequest;
+import ua.com.hookahcat.model.request.ParcelReturnRequest;
 import ua.com.hookahcat.model.request.TrackingDocument;
 import ua.com.hookahcat.model.request.TrackingDocumentMethodProperties;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
 import ua.com.hookahcat.model.response.DocumentListDataResponse;
 import ua.com.hookahcat.model.response.DocumentListResponse;
 import ua.com.hookahcat.model.response.DocumentsStatusResponse;
+import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
 import ua.com.hookahcat.service.NewPostServiceProxy;
 import ua.com.hookahcat.service.ProxyService;
 
@@ -76,10 +81,27 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
 
     @Override
     public List<DocumentDataResponse> getUnreceivedParcels(String apiKey,
-        String senderPhoneNumber) {
+        String senderPhoneNumber, long maxStorageDays) {
         var arrivedParcelsForLastMonth = getArrivedParcelsForLastMonth(apiKey);
 
-        return filterUnreceivedParcels(arrivedParcelsForLastMonth, senderPhoneNumber);
+        return filterUnreceivedParcels(arrivedParcelsForLastMonth, senderPhoneNumber,
+            maxStorageDays);
+    }
+
+    @Override
+    public ParcelReturnDataResponse createParcelReturnOrder(
+        ParcelReturnRequest parcelReturnRequest) {
+        parcelReturnRequest.setApiKey(novaPoshtaApiProperties.getApiKey());
+        parcelReturnRequest.setCalledMethod(SAVE);
+        parcelReturnRequest.setModelName(ADDITIONAL_SERVICE);
+
+        parcelReturnRequest.getMethodProperties()
+            .setOrderType(ORDER_TYPE_CARGO_RETURN);
+        parcelReturnRequest.getMethodProperties()
+            .setPaymentMethod(PAYMENT_METHOD_CASH);
+
+        return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), parcelReturnRequest,
+            ParcelReturnDataResponse.class);
     }
 
     @Override
@@ -142,7 +164,8 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
 
     private List<DocumentDataResponse> filterUnreceivedParcels(
         List<DocumentListDataResponse> arrivedParcelsData,
-        String senderPhoneNumber) {
+        String senderPhoneNumber,
+        long maxStorageDays) {
         if (CollectionUtils.isEmpty(arrivedParcelsData)) {
             return Collections.emptyList();
         }
@@ -163,11 +186,11 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         // TODO novaposhta allows to view up to 100 elements at the same time, need to implement cyclic request processing in the future
         var fullParcelsData = getDocumentsStatus(documentStatusRequest);
 
-        return filterParcelsByMaxStorageDays(fullParcelsData.getData());
+        return filterParcelsByMaxStorageDays(fullParcelsData.getData(), maxStorageDays);
     }
 
     private List<DocumentDataResponse> filterParcelsByMaxStorageDays(
-        List<DocumentDataResponse> fullParcelsData) {
+        List<DocumentDataResponse> fullParcelsData, long maxStorageDays) {
         var todayDate = LocalDate.now();
 
         return fullParcelsData.stream()
@@ -179,8 +202,9 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
                     var actualDeliveryDateFormatted = actualDeliveryDateTime.toLocalDate()
                         .format(DateTimeFormatter.ofPattern(DATE_PATTERN));
 
-                    return todayDate.minusDays(MAX_STORAGE_DAYS)
-                        .isAfter(LocalDate.parse(actualDeliveryDateFormatted, DateTimeFormatter.ofPattern(DATE_PATTERN)));
+                    return todayDate.minusDays(maxStorageDays)
+                        .isAfter(LocalDate.parse(actualDeliveryDateFormatted,
+                            DateTimeFormatter.ofPattern(DATE_PATTERN)));
                 }
                 return false;
             })

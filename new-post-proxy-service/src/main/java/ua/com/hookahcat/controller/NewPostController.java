@@ -84,7 +84,7 @@ public class NewPostController {
             content = {@Content(schema = @Schema(implementation = DocumentDataResponse.class))}),
     })
     public List<DocumentDataResponse> getUnreceivedParcels(@RequestParam String apiKey,
-        @RequestParam String phoneNumber) {
-        return newPostServiceProxy.getUnreceivedParcels(apiKey, phoneNumber);
+        @RequestParam String phoneNumber, @RequestParam long maxStorageDays) {
+        return newPostServiceProxy.getUnreceivedParcels(apiKey, phoneNumber, maxStorageDays);
     }
 }
