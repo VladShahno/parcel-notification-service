@@ -18,8 +18,8 @@ web.client:
   connection-provider-evict-in-background-timeout: ${CONNECTION_PROVIDER_EVICT_IN_BACKGROUND_TIMEOUT:120}
 
 csv:
-  response-headers: ${CSV_EXPORT_RESPONSE_HEADERS:ЕН,ПІБ отримувача з накладної,Номер телефону отримувача,Місто отримувача,Номер відділення отримувача,Фактична дата доставки,Сума зворотної доставки,Поточне значення суми грошового переказу,Фактична вага з ЕН,Вартість доставки,Ідентифікатор платника,Дата початку платного зберігання,Статус оплати ЕН,Сума оплати по ЕН,Дата повернення вантажу,Дата початку зберігання (після не отримання),Оголошена вартість,Номер бронювання комірки поштомату,День зберігання вантажу,Вартість зберігання}
-  response-fields: ${CSV_EXPORT_RESPONSE_FIELDS:Number,RecipientFullNameEW,PhoneRecipient,CityRecipient,WarehouseRecipientNumber,ActualDeliveryDate,RedeliverySum,LastAmountTransferGM,FactualWeight,DocumentCost,PayerType,DatePayedKeeping,ExpressWaybillPaymentStatus,ExpressWaybillAmountToPay,DateReturnCargo,DateFirstDayStorage,AnnouncedPrice,PostomatV3CellReservationNumber,DaysStorageCargo,StoragePrice}
+  response-headers: ${CSV_EXPORT_RESPONSE_HEADERS:ЕН,ПІБ отримувача з накладної,Номер телефону отримувача,Місто отримувача,Фактична дата доставки,Сума зворотної доставки,Поточне значення суми грошового переказу,Вартість доставки,Дата початку платного зберігання,Сума оплати по ЕН,Дата повернення вантажу,Дата початку зберігання (після не отримання),Оголошена вартість,Вартість зберігання}
+  response-fields: ${CSV_EXPORT_RESPONSE_FIELDS:Number,RecipientFullNameEW,PhoneRecipient,CityRecipient,ActualDeliveryDate,RedeliverySum,LastAmountTransferGM,DocumentCost,DatePayedKeeping,ExpressWaybillAmountToPay,DateReturnCargo,DateFirstDayStorage,AnnouncedPrice,StoragePrice}
   export-csv-limit: 500
 
 spring:
