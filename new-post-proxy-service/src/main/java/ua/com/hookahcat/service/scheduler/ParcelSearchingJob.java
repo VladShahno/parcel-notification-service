@@ -1,5 +1,7 @@
 package ua.com.hookahcat.service.scheduler;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
 import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_FOUR;
 import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_NINE;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
@@ -19,9 +21,9 @@ import org.springframework.stereotype.Service;
 import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.csvsdk.service.CsvService;
-import ua.com.hookahcat.model.request.ParcelReturnMethodProperties;
-import ua.com.hookahcat.model.request.ParcelReturnRequest;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
+import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
+import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.model.EmailNotificationData;
 import ua.com.hookahcat.notification.service.EmailNotificationService;
@@ -47,12 +49,25 @@ public class ParcelSearchingJob {
         sendEmailWithNotReceivedParcels(exportedParcelsData);
     }
 
-    //@Scheduled(cron = "${scheduled.parcel-search-job}")
+    @Scheduled(cron = "${scheduled.parcel-search-job}")
     public void createParcelReturnOrder() {
         var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(MAX_STORAGE_DAYS_NINE);
 
-        createParcelReturnRequest(unreceivedParcelsData).forEach(
-            newPostServiceProxy::createParcelReturnOrder);
+        if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
+            var returnOrderResults = unreceivedParcelsData.stream()
+                .map(documentDataResponse -> newPostServiceProxy.createParcelReturnOrder(
+                    novaPoshtaApiProperties.getApiKey(),
+                    documentDataResponse.getNumber()))
+                .toList();
+
+            log.info("Successfully created return orders for {}", kv(DOCUMENT_NUMBER,
+                returnOrderResults.stream()
+                    .filter(ParcelReturnResponse::isSuccess)
+                    .flatMap(parcelReturnResponse -> parcelReturnResponse.getData().stream())
+                    .map(ParcelReturnDataResponse::getNumber)
+                    .toList()));
+        }
+        log.info("Parcels that can be returned not found");
     }
 
     public byte[] getUnReceivedParcelsCsv(long maxStorageDays) {
@@ -100,23 +115,5 @@ public class ParcelSearchingJob {
             novaPoshtaApiProperties.getSenderPhoneNumber(), maxStorageDays);
         log.info("Found {} unreceived parcels", unreceivedParcelsData.size());
         return unreceivedParcelsData;
-    }
-
-    private List<ParcelReturnRequest> createParcelReturnRequest(
-        List<DocumentDataResponse> documentDataResponses) {
-        return documentDataResponses.stream()
-            .map(documentDataResponse -> ParcelReturnRequest.builder()
-                .methodProperties(ParcelReturnMethodProperties.builder()
-                    .intDocNumber(documentDataResponse.getNumber())
-                    .buildingNumber()
-                    .recipientSettlement()
-                    .recipientSettlementStreet()
-                    .noteAddressRecipient()
-                    .reason("Сплив час максимального зберігання")
-                    .subtypeReason()
-                    .note("Автоматичне повернення товару")
-                    .build())
-                .build())
-            .toList();
     }
 }

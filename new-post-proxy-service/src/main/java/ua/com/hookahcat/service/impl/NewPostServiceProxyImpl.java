@@ -1,5 +1,6 @@
 package ua.com.hookahcat.service.impl;
 
+import static ua.com.hookahcat.common.Constants.CalledMethods.CHECK_POSSIBILITY_CREATE_RETURN;
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_DOCUMENT_LIST;
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
 import static ua.com.hookahcat.common.Constants.CalledMethods.SAVE;
@@ -28,17 +29,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
+import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnProperties;
+import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnRequest;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
 import ua.com.hookahcat.model.request.DocumentListRequest;
 import ua.com.hookahcat.model.request.DocumentsStatusRequest;
+import ua.com.hookahcat.model.request.ParcelReturnMethodProperties;
 import ua.com.hookahcat.model.request.ParcelReturnRequest;
 import ua.com.hookahcat.model.request.TrackingDocument;
 import ua.com.hookahcat.model.request.TrackingDocumentMethodProperties;
+import ua.com.hookahcat.model.response.CheckPossibilityCreateReturnResponse;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
 import ua.com.hookahcat.model.response.DocumentListDataResponse;
 import ua.com.hookahcat.model.response.DocumentListResponse;
 import ua.com.hookahcat.model.response.DocumentsStatusResponse;
-import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
+import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.service.NewPostServiceProxy;
 import ua.com.hookahcat.service.ProxyService;
 
@@ -89,19 +94,26 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     }
 
     @Override
-    public ParcelReturnDataResponse createParcelReturnOrder(
-        ParcelReturnRequest parcelReturnRequest) {
-        parcelReturnRequest.setApiKey(novaPoshtaApiProperties.getApiKey());
-        parcelReturnRequest.setCalledMethod(SAVE);
-        parcelReturnRequest.setModelName(ADDITIONAL_SERVICE);
+    public ParcelReturnResponse createParcelReturnOrder(String apiKey, String documentNumber) {
 
-        parcelReturnRequest.getMethodProperties()
-            .setOrderType(ORDER_TYPE_CARGO_RETURN);
-        parcelReturnRequest.getMethodProperties()
-            .setPaymentMethod(PAYMENT_METHOD_CASH);
+        return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(),
+            createParcelReturnRequest(apiKey, documentNumber), ParcelReturnResponse.class);
+    }
 
-        return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), parcelReturnRequest,
-            ParcelReturnDataResponse.class);
+    @Override
+    public CheckPossibilityCreateReturnResponse checkPossibilityCreateReturnOrder(String apiKey,
+        String documentNumber) {
+        var returnRequest = CheckPossibilityCreateReturnRequest.builder()
+            .apiKey(apiKey)
+            .modelName(ADDITIONAL_SERVICE)
+            .calledMethod(CHECK_POSSIBILITY_CREATE_RETURN)
+            .methodProperties(CheckPossibilityCreateReturnProperties.builder()
+                .number(documentNumber)
+                .build())
+            .build();
+
+        return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), returnRequest,
+            CheckPossibilityCreateReturnResponse.class);
     }
 
     @Override
@@ -209,5 +221,26 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
                 return false;
             })
             .toList();
+    }
+
+    private ParcelReturnRequest createParcelReturnRequest(String apiKey, String documentNumber) {
+        var returnOrderProperties = novaPoshtaApiProperties.getReturnOrder();
+
+        return ParcelReturnRequest.builder()
+            .apiKey(apiKey)
+            .modelName(ADDITIONAL_SERVICE)
+            .calledMethod(SAVE)
+            .methodProperties(ParcelReturnMethodProperties.builder()
+                .intDocNumber(documentNumber)
+                .buildingNumber(returnOrderProperties.getBuildingNumber())
+                .recipientSettlement(returnOrderProperties.getRecipientSettlement())
+                .recipientSettlementStreet(returnOrderProperties.getRecipientSettlementStreet())
+                .reason(returnOrderProperties.getReturnReason())
+                .subtypeReason(returnOrderProperties.getReturnSubtypeReason())
+                .note("Автоматичне повернення товару")
+                .orderType(ORDER_TYPE_CARGO_RETURN)
+                .paymentMethod(PAYMENT_METHOD_CASH)
+                .build())
+            .build();
     }
 }

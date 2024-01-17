@@ -2,10 +2,12 @@ package ua.com.hookahcat.controller;
 
 import ua.com.hookahcat.model.request.DocumentListRequest;
 import ua.com.hookahcat.model.request.DocumentsStatusRequest;
+import ua.com.hookahcat.model.response.CheckPossibilityCreateReturnResponse;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
 import ua.com.hookahcat.model.response.DocumentListDataResponse;
 import ua.com.hookahcat.model.response.DocumentListResponse;
 import ua.com.hookahcat.model.response.DocumentsStatusResponse;
+import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.service.NewPostServiceProxy;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -64,8 +66,9 @@ public class NewPostController {
 
     @GetMapping("/document-list/month")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Endpoint will return all the EN numbers that were created in the the personal account for last month "
-        + "with status Прибув на відділення or Прибув на відділення (завантажено в Поштомат)")
+    @Operation(summary =
+        "Endpoint will return all the EN numbers that were created in the the personal account for last month "
+            + "with status Прибув на відділення or Прибув на відділення (завантажено в Поштомат)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Document list received successfully",
             content = {
@@ -86,5 +89,35 @@ public class NewPostController {
     public List<DocumentDataResponse> getUnreceivedParcels(@RequestParam String apiKey,
         @RequestParam String phoneNumber, @RequestParam long maxStorageDays) {
         return newPostServiceProxy.getUnreceivedParcels(apiKey, phoneNumber, maxStorageDays);
+    }
+
+    @GetMapping("/return-order/check-return-possibility")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary =
+        "Endpoint allows to check the possibility of creating a return order request. The method is only available "
+            + "to sender clients. If successful, blocks of addresses are returned that can be used to create an return order")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Response received successfully",
+            content = {
+                @Content(schema = @Schema(implementation = CheckPossibilityCreateReturnResponse.class))}),
+    })
+    public CheckPossibilityCreateReturnResponse CheckPossibilityCreateReturnOrder(
+        @RequestParam String apiKey,
+        @RequestParam String documentNumber) {
+        return newPostServiceProxy.checkPossibilityCreateReturnOrder(apiKey, documentNumber);
+    }
+
+    @GetMapping("/return-order")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Endpoint allows to create a return order request (the method is only available for sender customers)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Response received successfully",
+            content = {
+                @Content(schema = @Schema(implementation = ParcelReturnResponse.class))}),
+    })
+    public ParcelReturnResponse createParcelReturnOrder(
+        @RequestParam String apiKey,
+        @RequestParam String documentNumber) {
+        return newPostServiceProxy.createParcelReturnOrder(apiKey, documentNumber);
     }
 }

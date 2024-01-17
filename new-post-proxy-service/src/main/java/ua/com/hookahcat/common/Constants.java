@@ -12,6 +12,7 @@ public class Constants {
     public static final String ORDER_TYPE_CARGO_RETURN = "orderCargoReturn";
     public static final int MAX_STORAGE_DAYS_FOUR = 4;
     public static final int MAX_STORAGE_DAYS_NINE = 9;
+    public static final String DOCUMENT_NUMBER = "documentNumber";
 
     @UtilityClass
     public class CalledMethods {
@@ -19,6 +20,7 @@ public class Constants {
         public static final String GET_STATUS_DOCUMENTS = "getStatusDocuments";
         public static final String GET_DOCUMENT_LIST = "getDocumentList";
         public static final String SAVE = "save";
+        public static final String CHECK_POSSIBILITY_CREATE_RETURN = "CheckPossibilityCreateReturn";
     }
 
     @UtilityClass

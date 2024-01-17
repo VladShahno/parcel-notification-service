@@ -12,4 +12,16 @@ public class NovaPoshtaApiProperties {
     private String baseUrl;
     private String apiKey;
     private String senderPhoneNumber;
+    private ReturnOrder returnOrder = new ReturnOrder();
+
+
+    @Data
+    public static class ReturnOrder {
+
+        private String recipientSettlement;
+        private String recipientSettlementStreet;
+        private String buildingNumber;
+        private String returnReason;
+        private String returnSubtypeReason;
+    }
 }
