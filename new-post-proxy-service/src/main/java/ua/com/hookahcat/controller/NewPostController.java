@@ -1,5 +1,13 @@
 package ua.com.hookahcat.controller;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
+import static ua.com.hookahcat.common.Constants.API_KEY;
+import static ua.com.hookahcat.common.Constants.DATE_TIME_FROM;
+import static ua.com.hookahcat.common.Constants.DATE_TIME_TO;
+import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
+import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS;
+import static ua.com.hookahcat.common.Constants.PHONE_NUMBER;
+
 import ua.com.hookahcat.model.request.DocumentListRequest;
 import ua.com.hookahcat.model.request.DocumentsStatusRequest;
 import ua.com.hookahcat.model.response.CheckPossibilityCreateReturnResponse;
@@ -49,6 +57,10 @@ public class NewPostController {
     })
     public DocumentsStatusResponse getDocumentsStatus(
         @RequestBody @Valid DocumentsStatusRequest documentsStatusRequest) {
+        log.info("Getting document status for {} with {}",
+            kv(DOCUMENT_NUMBER, documentsStatusRequest.getMethodProperties().getDocuments()),
+            kv(API_KEY, documentsStatusRequest.getApiKey()));
+
         return newPostServiceProxy.getDocumentsStatus(documentsStatusRequest);
     }
 
@@ -61,14 +73,18 @@ public class NewPostController {
     })
     public DocumentListResponse getDocumentList(
         @RequestBody @Valid DocumentListRequest documentListRequest) {
+        log.info("Getting document list for {} from {} to {}",
+            kv(API_KEY, documentListRequest.getApiKey()),
+            kv(DATE_TIME_FROM, documentListRequest.getMethodProperties().getDateTimeFrom()),
+            kv(DATE_TIME_TO, documentListRequest.getMethodProperties().getDateTimeTo()));
+
         return newPostServiceProxy.getDocumentList(documentListRequest);
     }
 
     @GetMapping("/document-list/month")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary =
-        "Endpoint will return all the EN numbers that were created in the the personal account for last month "
-            + "with status Прибув на відділення or Прибув на відділення (завантажено в Поштомат)")
+        "Endpoint will return all the EN numbers that were created in the the personal account for last month with status Прибув у відділення")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Document list received successfully",
             content = {
@@ -76,6 +92,8 @@ public class NewPostController {
     })
     public List<DocumentListDataResponse> getArrivedParcelsForLastMonth(
         @RequestParam String apiKey) {
+        log.info("Getting document list for last month for {}", kv(API_KEY, apiKey));
+
         return newPostServiceProxy.getArrivedParcelsForLastMonth(apiKey);
     }
 
@@ -88,6 +106,9 @@ public class NewPostController {
     })
     public List<DocumentDataResponse> getUnreceivedParcels(@RequestParam String apiKey,
         @RequestParam String phoneNumber, @RequestParam long maxStorageDays) {
+        log.info("Getting unreceived parcels for  {} and {} with {}", kv(API_KEY, apiKey),
+            kv(PHONE_NUMBER, phoneNumber), kv(MAX_STORAGE_DAYS, maxStorageDays));
+
         return newPostServiceProxy.getUnreceivedParcels(apiKey, phoneNumber, maxStorageDays);
     }
 
@@ -104,6 +125,9 @@ public class NewPostController {
     public CheckPossibilityCreateReturnResponse CheckPossibilityCreateReturnOrder(
         @RequestParam String apiKey,
         @RequestParam String documentNumber) {
+        log.info("Check possibility create return order for {}",
+            kv(DOCUMENT_NUMBER, documentNumber));
+
         return newPostServiceProxy.checkPossibilityCreateReturnOrder(apiKey, documentNumber);
     }
 
@@ -118,6 +142,8 @@ public class NewPostController {
     public ParcelReturnResponse createParcelReturnOrder(
         @RequestParam String apiKey,
         @RequestParam String documentNumber) {
+        log.info("Creation return order for {}", kv(DOCUMENT_NUMBER, documentNumber));
+
         return newPostServiceProxy.createParcelReturnOrder(apiKey, documentNumber);
     }
 }

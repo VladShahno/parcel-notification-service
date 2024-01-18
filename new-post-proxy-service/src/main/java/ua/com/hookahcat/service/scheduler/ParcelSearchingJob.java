@@ -49,7 +49,7 @@ public class ParcelSearchingJob {
         sendEmailWithNotReceivedParcels(exportedParcelsData);
     }
 
-    @Scheduled(cron = "${scheduled.parcel-search-job}")
+    //@Scheduled(cron = "${scheduled.parcel-search-job}")
     public void createParcelReturnOrder() {
         var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(MAX_STORAGE_DAYS_NINE);
 

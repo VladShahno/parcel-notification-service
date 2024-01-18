@@ -13,6 +13,11 @@ public class Constants {
     public static final int MAX_STORAGE_DAYS_FOUR = 4;
     public static final int MAX_STORAGE_DAYS_NINE = 9;
     public static final String DOCUMENT_NUMBER = "documentNumber";
+    public static final String API_KEY = "apiKey";
+    public static final String PHONE_NUMBER = "phoneNumber";
+    public static final String MAX_STORAGE_DAYS = "maxStorageDays";
+    public static final String DATE_TIME_FROM = "dateTimeFrom";
+    public static final String DATE_TIME_TO = "dateTimeTo";
 
     @UtilityClass
     public class CalledMethods {
@@ -35,7 +40,6 @@ public class Constants {
     public class StateNames {
 
         public static final String ARRIVED = "Прибув у відділення";
-        public static final String ARRIVED_PARCEL_LOCKER = "Прибув на відділення (завантажено в Поштомат)";
     }
 
     @UtilityClass
