@@ -1,9 +1,11 @@
 package ua.com.hookahcat.service.impl;
 
+import static net.logstash.logback.argument.StructuredArguments.kv;
 import static ua.com.hookahcat.common.Constants.CalledMethods.CHECK_POSSIBILITY_CREATE_RETURN;
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_DOCUMENT_LIST;
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
 import static ua.com.hookahcat.common.Constants.CalledMethods.SAVE;
+import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
 import static ua.com.hookahcat.common.Constants.ModelsNames.ADDITIONAL_SERVICE;
 import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
@@ -12,6 +14,7 @@ import static ua.com.hookahcat.common.Constants.ORDER_TYPE_CARGO_RETURN;
 import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
+import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
 import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
 import static ua.com.hookahcat.common.Constants.ZERO;
 
@@ -25,7 +28,6 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
@@ -34,8 +36,10 @@ import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnRequest;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
 import ua.com.hookahcat.model.request.DocumentListRequest;
 import ua.com.hookahcat.model.request.DocumentsStatusRequest;
-import ua.com.hookahcat.model.request.ParcelReturnMethodProperties;
-import ua.com.hookahcat.model.request.ParcelReturnRequest;
+import ua.com.hookahcat.model.request.ParcelReturnToAddressMethodProperties;
+import ua.com.hookahcat.model.request.ParcelReturnToAddressRequest;
+import ua.com.hookahcat.model.request.ParcelReturnToWarehouseProperties;
+import ua.com.hookahcat.model.request.ParcelReturnToWarehouseRequest;
 import ua.com.hookahcat.model.request.TrackingDocument;
 import ua.com.hookahcat.model.request.TrackingDocumentMethodProperties;
 import ua.com.hookahcat.model.response.CheckPossibilityCreateReturnResponse;
@@ -94,10 +98,22 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     }
 
     @Override
-    public ParcelReturnResponse createParcelReturnOrder(String apiKey, String documentNumber) {
+    public ParcelReturnResponse createParcelReturnOrderToAddress(String apiKey,
+        String documentNumber) {
 
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(),
-            createParcelReturnRequest(apiKey, documentNumber), ParcelReturnResponse.class);
+            createParcelReturnToAddressRequest(apiKey, documentNumber), ParcelReturnResponse.class);
+    }
+
+    @Override
+    public ParcelReturnResponse createParcelReturnOrderToWarehouse(String apiKey,
+        String documentNumber, String recipientWarehouse) {
+        log.info("Creating parcel return order to warehouse for {} and {}",
+            kv(DOCUMENT_NUMBER, documentNumber), kv(RECIPIENT_WAREHOUSE, recipientWarehouse));
+
+        return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(),
+            createParcelReturnToWarehouseRequest(apiKey, documentNumber, recipientWarehouse),
+            ParcelReturnResponse.class);
     }
 
     @Override
@@ -112,12 +128,10 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
                 .build())
             .build();
 
+        log.info("Checking possibility to return {}", kv(DOCUMENT_NUMBER, documentNumber));
+
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), returnRequest,
             CheckPossibilityCreateReturnResponse.class);
-    }
-
-    @Override
-    protected void buildHeadersForRequest(HttpHeaders httpHeaders) {
     }
 
     private List<DocumentListDataResponse> collectAllDataForLastMonth(String apiKey) {
@@ -132,7 +146,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         var documentRequest = generateDocumentListRequest(apiKey, lastMonthFormatted,
             todayFormatted);
 
-        List<DocumentListDataResponse> documentListRequests = new ArrayList<>();
+        List<DocumentListDataResponse> documentListDataResponses = new ArrayList<>();
 
         while (true) {
             documentRequest.getMethodProperties().setPage(String.valueOf(page));
@@ -144,9 +158,9 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
             if (response.getData().isEmpty()) {
                 break;
             }
-            documentListRequests.addAll(response.getData());
+            documentListDataResponses.addAll(response.getData());
         }
-        return documentListRequests;
+        return documentListDataResponses;
     }
 
     private DocumentListRequest generateDocumentListRequest(String apiKey, String dateFrom,
@@ -223,21 +237,40 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
             .toList();
     }
 
-    private ParcelReturnRequest createParcelReturnRequest(String apiKey, String documentNumber) {
+    private ParcelReturnToWarehouseRequest createParcelReturnToWarehouseRequest(String apiKey,
+        String documentNumber, String recipientWarehouse) {
         var returnOrderProperties = novaPoshtaApiProperties.getReturnOrder();
 
-        return ParcelReturnRequest.builder()
+        return ParcelReturnToWarehouseRequest.builder()
             .apiKey(apiKey)
             .modelName(ADDITIONAL_SERVICE)
             .calledMethod(SAVE)
-            .methodProperties(ParcelReturnMethodProperties.builder()
+            .methodProperties(ParcelReturnToWarehouseProperties.builder()
+                .intDocNumber(documentNumber)
+                .paymentMethod(PAYMENT_METHOD_CASH)
+                .reason(returnOrderProperties.getReturnReason())
+                .subtypeReason(returnOrderProperties.getReturnSubtypeReason())
+                .orderType(ORDER_TYPE_CARGO_RETURN)
+                .recipientWarehouse(recipientWarehouse)
+                .build())
+            .build();
+    }
+
+    private ParcelReturnToAddressRequest createParcelReturnToAddressRequest(String apiKey,
+        String documentNumber) {
+        var returnOrderProperties = novaPoshtaApiProperties.getReturnOrder();
+
+        return ParcelReturnToAddressRequest.builder()
+            .apiKey(apiKey)
+            .modelName(ADDITIONAL_SERVICE)
+            .calledMethod(SAVE)
+            .methodProperties(ParcelReturnToAddressMethodProperties.builder()
                 .intDocNumber(documentNumber)
                 .buildingNumber(returnOrderProperties.getBuildingNumber())
                 .recipientSettlement(returnOrderProperties.getRecipientSettlement())
                 .recipientSettlementStreet(returnOrderProperties.getRecipientSettlementStreet())
                 .reason(returnOrderProperties.getReturnReason())
                 .subtypeReason(returnOrderProperties.getReturnSubtypeReason())
-                .note("Автоматичне повернення товару")
                 .orderType(ORDER_TYPE_CARGO_RETURN)
                 .paymentMethod(PAYMENT_METHOD_CASH)
                 .build())

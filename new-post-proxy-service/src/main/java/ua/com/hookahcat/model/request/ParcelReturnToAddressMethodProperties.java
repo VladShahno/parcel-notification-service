@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ParcelReturnMethodProperties {
+public class ParcelReturnToAddressMethodProperties {
 
     @JsonProperty("IntDocNumber")
     private String intDocNumber;

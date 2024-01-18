@@ -8,7 +8,6 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -34,7 +33,6 @@ public abstract class ProxyService {
     ) {
         return webClient.get()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .retrieve()
             .onStatus(HttpStatusCode::isError,
@@ -62,7 +60,6 @@ public abstract class ProxyService {
             .toUriString();
         return webClient.get()
             .uri(uriWithParameters)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .retrieve()
             .onStatus(HttpStatusCode::isError,
@@ -75,7 +72,6 @@ public abstract class ProxyService {
         ParameterizedTypeReference<T> typeReference) {
         return webClient.get()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .retrieve()
             .onStatus(HttpStatusCode::isError,
@@ -89,7 +85,6 @@ public abstract class ProxyService {
         Map<String, String> headers, T tBody) {
         webClient.put()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .bodyValue(tBody)
             .retrieve()
@@ -105,7 +100,6 @@ public abstract class ProxyService {
         T tBody) {
         webClient.patch()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .bodyValue(tBody)
             .retrieve()
@@ -122,7 +116,6 @@ public abstract class ProxyService {
         Class<T> tClass) {
         return webClient.post()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(tBody)
@@ -141,7 +134,6 @@ public abstract class ProxyService {
         MediaType mediaType) {
         return webClient.post()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .contentType(mediaType)
             .bodyValue(tBody)
@@ -174,7 +166,6 @@ public abstract class ProxyService {
                     reactorRequest.responseTimeout(Duration.ofSeconds(timeout));
                 }
             })
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(tBody)
@@ -191,7 +182,6 @@ public abstract class ProxyService {
         Class<T> tClass) {
         return webClient.delete()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .retrieve()
             .onStatus(HttpStatusCode::isError,
@@ -206,7 +196,6 @@ public abstract class ProxyService {
         ParameterizedTypeReference<S> typeReference) {
         return webClient.delete()
             .uri(uri)
-            .headers(this::buildHeadersForRequest)
             .headers(customHeaders -> headers.forEach(customHeaders::add))
             .retrieve()
             .onStatus(HttpStatusCode::isError,
@@ -242,6 +231,4 @@ public abstract class ProxyService {
             .buildAndExpand(pathParams)
             .toUriString();
     }
-
-    protected abstract void buildHeadersForRequest(HttpHeaders httpHeaders);
 }

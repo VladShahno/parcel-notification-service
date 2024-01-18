@@ -18,6 +18,8 @@ public class Constants {
     public static final String MAX_STORAGE_DAYS = "maxStorageDays";
     public static final String DATE_TIME_FROM = "dateTimeFrom";
     public static final String DATE_TIME_TO = "dateTimeTo";
+    public static final String RECIPIENT_WAREHOUSE = "recipientWarehouse";
+    public static final String STATUS = "status";
 
     @UtilityClass
     public class CalledMethods {

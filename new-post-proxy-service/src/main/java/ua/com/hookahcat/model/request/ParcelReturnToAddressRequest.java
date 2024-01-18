@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ParcelReturnRequest {
+public class ParcelReturnToAddressRequest {
 
     @JsonProperty("apiKey")
     private String apiKey;
@@ -21,6 +21,6 @@ public class ParcelReturnRequest {
     private String calledMethod;
 
     @JsonProperty("methodProperties")
-    private ParcelReturnMethodProperties methodProperties;
+    private ParcelReturnToAddressMethodProperties methodProperties;
 
 }

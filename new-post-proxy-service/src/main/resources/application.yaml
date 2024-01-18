@@ -50,7 +50,8 @@ email-notification:
   message: ${EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
 
 scheduled:
-  parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 * * ?}
+  parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 */2 * ?}
+  parcel-return-order-job: ${PARCEL_RETURN_ORDER_JOB:0 0 10 * * ?}
 
 telegram-bot:
   hookahcat-pns:

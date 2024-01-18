@@ -21,7 +21,10 @@ public interface NewPostServiceProxy {
     List<DocumentDataResponse> getUnreceivedParcels(String apiKey, String senderPhoneNumber,
         long maxStorageDays);
 
-    ParcelReturnResponse createParcelReturnOrder(String apiKey, String documentNumber);
+    ParcelReturnResponse createParcelReturnOrderToAddress(String apiKey, String documentNumber);
+
+    ParcelReturnResponse createParcelReturnOrderToWarehouse(String apiKey, String documentNumber,
+        String recipientWarehouse);
 
     CheckPossibilityCreateReturnResponse checkPossibilityCreateReturnOrder(String apiKey,
         String documentNumber);

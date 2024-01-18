@@ -5,6 +5,7 @@ import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
 import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_FOUR;
 import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_NINE;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
+import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +23,6 @@ import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
-import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
-import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.model.EmailNotificationData;
 import ua.com.hookahcat.notification.service.EmailNotificationService;
@@ -42,33 +41,40 @@ public class ParcelSearchingJob {
     private final CsvService csvService;
     private final NewPostServiceProxy newPostServiceProxy;
 
-    //@Scheduled(cron = "${scheduled.parcel-search-job}")
+    @Scheduled(cron = "${scheduled.parcel-search-job}")
     public void searchUnReceivedParcels() {
         log.info("Start scheduler for searching not received parcels...");
         var exportedParcelsData = getUnReceivedParcelsCsv(MAX_STORAGE_DAYS_FOUR);
         sendEmailWithNotReceivedParcels(exportedParcelsData);
     }
 
-    //@Scheduled(cron = "${scheduled.parcel-search-job}")
-    public void createParcelReturnOrder() {
+    @Scheduled(cron = "${scheduled.parcel-return-order-job}")
+    public void createParcelReturnOrderToWarehouse() {
+        log.info("Start scheduler for creating parcel return order to warehouse...");
+
         var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(MAX_STORAGE_DAYS_NINE);
+        var apiKey = novaPoshtaApiProperties.getApiKey();
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
-            var returnOrderResults = unreceivedParcelsData.stream()
-                .map(documentDataResponse -> newPostServiceProxy.createParcelReturnOrder(
-                    novaPoshtaApiProperties.getApiKey(),
-                    documentDataResponse.getNumber()))
-                .toList();
-
-            log.info("Successfully created return orders for {}", kv(DOCUMENT_NUMBER,
-                returnOrderResults.stream()
-                    .filter(ParcelReturnResponse::isSuccess)
-                    .flatMap(parcelReturnResponse -> parcelReturnResponse.getData().stream())
-                    .map(ParcelReturnDataResponse::getNumber)
-                    .toList()));
+            unreceivedParcelsData.parallelStream()
+                .forEach(documentDataResponse -> {
+                    var documentNumber = documentDataResponse.getNumber();
+                    var recipientWarehouse = newPostServiceProxy.checkPossibilityCreateReturnOrder(
+                        apiKey, documentNumber);
+                    if (recipientWarehouse.isSuccess()) {
+                        var warehouseRef = recipientWarehouse.getData().get(0).getRef();
+                        newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey,
+                            documentNumber,
+                            warehouseRef);
+                        log.info("Return order to warehouse successfully created for {} and {}",
+                            kv(DOCUMENT_NUMBER, documentNumber),
+                            kv(RECIPIENT_WAREHOUSE, warehouseRef));
+                    }
+                });
         }
         log.info("Parcels that can be returned not found");
     }
+
 
     public byte[] getUnReceivedParcelsCsv(long maxStorageDays) {
         var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(maxStorageDays);
