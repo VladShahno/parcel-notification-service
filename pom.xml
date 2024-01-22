@@ -33,7 +33,7 @@
     <springdoc.version>2.0.2</springdoc.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
-    <spring-cloud-contract-wiremock.version>3.0.4</spring-cloud-contract-wiremock.version>
+    <spring-cloud-contract-wiremock.version>4.1.0</spring-cloud-contract-wiremock.version>
     <wiremock-jre8.version>2.32.0</wiremock-jre8.version>
   </properties>
 
