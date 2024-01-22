@@ -14,6 +14,7 @@ import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ONE;
 import static ua.com.hookahcat.common.Constants.ORDER_TYPE_CARGO_RETURN;
+import static ua.com.hookahcat.common.Constants.PAGE;
 import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
 import static ua.com.hookahcat.common.Constants.PHONE_NUMBER;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
@@ -74,7 +75,9 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         statusRequest.setModelName(TRACKING_DOCUMENT);
 
         log.info("Getting document status for {}",
-            kv(DOCUMENT_NUMBER, statusRequest.getMethodProperties().getDocuments()));
+            kv(DOCUMENT_NUMBER, statusRequest.getMethodProperties().getDocuments().stream()
+                .map(TrackingDocument::getDocumentNumber)
+                .toList()));
 
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), statusRequest,
             DocumentsStatusResponse.class);
@@ -85,9 +88,10 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         documentListRequest.setCalledMethod(GET_DOCUMENT_LIST);
         documentListRequest.setModelName(INTERNET_DOCUMENT);
 
-        log.info("Getting document list from {} to {}",
+        log.info("Getting document list from {} to {} from {}",
             kv(DATE_TIME_FROM, documentListRequest.getMethodProperties().getDateTimeFrom()),
-            kv(DATE_TIME_TO, documentListRequest.getMethodProperties().getDateTimeTo()));
+            kv(DATE_TIME_TO, documentListRequest.getMethodProperties().getDateTimeTo()),
+            kv(PAGE, documentListRequest.getMethodProperties().getPage()));
 
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), documentListRequest,
             DocumentListResponse.class);

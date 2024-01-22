@@ -14,11 +14,10 @@ import ua.com.hookahcat.service.scheduler.ParcelSearchingJob;
 import ua.com.hookahcat.telegram.bot.service.TelegramService;
 
 @Service
-@AllArgsConstructor
 @RequiredArgsConstructor
 public class TelegramServiceImpl implements TelegramService {
 
-    private ParcelSearchingJob parcelSearchingJob;
+    private final ParcelSearchingJob parcelSearchingJob;
 
     @Value("${scheduled.max-storage-days-before-notification}")
     private String maxStorageDaysBeforeNotification;

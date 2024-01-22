@@ -17,6 +17,7 @@ public class Constants {
     public static final String DATE_TIME_TO = "dateTimeTo";
     public static final String RECIPIENT_WAREHOUSE = "recipientWarehouse";
     public static final String STATUS = "status";
+    public static final String PAGE = "page";
 
     @UtilityClass
     public class CalledMethods {
