@@ -1,14 +1,6 @@
 package ua.com.hookahcat.controller;
 
-import static net.logstash.logback.argument.StructuredArguments.kv;
-import static ua.com.hookahcat.common.Constants.DATE_TIME_FROM;
-import static ua.com.hookahcat.common.Constants.DATE_TIME_TO;
-import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
-import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS;
-import static ua.com.hookahcat.common.Constants.PHONE_NUMBER;
-import static ua.com.hookahcat.common.Constants.STATUS;
-import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
-
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -59,9 +51,6 @@ public class NewPostController {
     })
     public DocumentsStatusResponse getDocumentsStatus(
         @RequestBody @Valid DocumentsStatusRequest documentsStatusRequest) {
-        log.info("Getting document status for {}",
-            kv(DOCUMENT_NUMBER, documentsStatusRequest.getMethodProperties().getDocuments()));
-
         return newPostServiceProxy.getDocumentsStatus(documentsStatusRequest);
     }
 
@@ -74,10 +63,6 @@ public class NewPostController {
     })
     public DocumentListResponse getDocumentList(
         @RequestBody @Valid DocumentListRequest documentListRequest) {
-        log.info("Getting document list from {} to {}",
-            kv(DATE_TIME_FROM, documentListRequest.getMethodProperties().getDateTimeFrom()),
-            kv(DATE_TIME_TO, documentListRequest.getMethodProperties().getDateTimeTo()));
-
         return newPostServiceProxy.getDocumentList(documentListRequest);
     }
 
@@ -93,8 +78,6 @@ public class NewPostController {
     public List<DocumentListDataResponse> getArrivedParcelsForLastMonth(
         @Parameter(description = "Nova-poshta user apiKey", example = "3e20cc3afc189c626ec671616e7a6468")
         @RequestParam String apiKey) {
-        log.info("Getting document list for last month with {}", kv(STATUS, ARRIVED));
-
         return newPostServiceProxy.getArrivedParcelsForLastMonth(apiKey);
     }
 
@@ -111,10 +94,7 @@ public class NewPostController {
         @Parameter(description = "Sender's phone number", example = "380600000000")
         @RequestParam String phoneNumber,
         @Parameter(description = "To filter and return all parcels waiting for N days after actual delivery to the warehouse", example = "4")
-        @RequestParam long maxStorageDays) {
-        log.info("Getting unreceived parcels for {} with {}", kv(PHONE_NUMBER, phoneNumber),
-            kv(MAX_STORAGE_DAYS, maxStorageDays));
-
+        @RequestParam String maxStorageDays) {
         return newPostServiceProxy.getUnreceivedParcels(apiKey, phoneNumber, maxStorageDays);
     }
 
@@ -133,12 +113,10 @@ public class NewPostController {
         @RequestParam String apiKey,
         @Parameter(description = "EN number (ТТН) for return to warehouse", example = "207004860074693")
         @RequestParam String documentNumber) {
-        log.info("Check possibility create return order for {}",
-            kv(DOCUMENT_NUMBER, documentNumber));
-
         return newPostServiceProxy.checkPossibilityCreateReturnOrder(apiKey, documentNumber);
     }
 
+    @Hidden
     @GetMapping("/return-order/to-address")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Endpoint allows to create a return order request to an address "
@@ -151,11 +129,8 @@ public class NewPostController {
     public ParcelReturnResponse createParcelReturnOrderToAddress(
         @Parameter(description = "Nova-poshta user apiKey", example = "3e20cc3afc189c626ec671616e7a6468")
         @RequestParam String apiKey,
-        @Parameter(description = "EN number (ТТН) for return to warehouse", example = "207004860074693")
+        @Parameter(description = "EN number (ТТН) for return to address", example = "207004860074693")
         @RequestParam String documentNumber) {
-        log.info("Creation return order for {} to a new address",
-            kv(DOCUMENT_NUMBER, documentNumber));
-
         return newPostServiceProxy.createParcelReturnOrderToAddress(apiKey, documentNumber);
     }
 
@@ -176,9 +151,6 @@ public class NewPostController {
         @Parameter(description = "Identifier (REF) of the warehouse for return, must be taken from "
             + "the response from checkPossibilityCreateReturnOrder API", example = "e71d006d-4b33-11e4-ab6d-005056801329")
         @RequestParam String recipientWarehouse) {
-        log.info("Creation return order for {} to a new address",
-            kv(DOCUMENT_NUMBER, documentNumber));
-
         return newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey, documentNumber,
             recipientWarehouse);
     }

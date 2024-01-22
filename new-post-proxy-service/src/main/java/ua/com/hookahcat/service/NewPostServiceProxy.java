@@ -19,7 +19,7 @@ public interface NewPostServiceProxy {
     List<DocumentListDataResponse> getArrivedParcelsForLastMonth(String apiKey);
 
     List<DocumentDataResponse> getUnreceivedParcels(String apiKey, String senderPhoneNumber,
-        long maxStorageDays);
+        String maxStorageDays);
 
     ParcelReturnResponse createParcelReturnOrderToAddress(String apiKey, String documentNumber);
 

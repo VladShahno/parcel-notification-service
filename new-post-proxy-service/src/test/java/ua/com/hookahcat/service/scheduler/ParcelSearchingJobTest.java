@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,11 +16,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.csvsdk.service.CsvService;
@@ -57,6 +58,12 @@ class ParcelSearchingJobTest {
     @InjectMocks
     private ParcelSearchingJob parcelSearchingJob;
 
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(parcelSearchingJob, "maxStorageDaysBeforeReturnOrder", "7");
+        ReflectionTestUtils.setField(parcelSearchingJob, "maxStorageDaysBeforeNotification", "4");
+    }
+
     @Test
     void testSearchUnReceivedParcels() {
         when(csvProperties.getResponseHeaders()).thenReturn(Arrays.asList("header1", "header2"));
@@ -72,7 +79,7 @@ class ParcelSearchingJobTest {
     void testCreateParcelReturnOrderToWarehouse() {
         when(novaPoshtaApiProperties.getApiKey()).thenReturn("mockedApiKey");
         when(novaPoshtaApiProperties.getSenderPhoneNumber()).thenReturn("mockedPhoneNumber");
-        when(newPostServiceProxy.getUnreceivedParcels("mockedApiKey", "mockedPhoneNumber", 9L))
+        when(newPostServiceProxy.getUnreceivedParcels("mockedApiKey", "mockedPhoneNumber", "7"))
             .thenReturn(List.of(stubDocumentDataResponse()));
         when(newPostServiceProxy.checkPossibilityCreateReturnOrder("mockedApiKey",
             "mockNumber")).thenReturn(CheckPossibilityCreateReturnResponse.builder()
@@ -89,14 +96,13 @@ class ParcelSearchingJobTest {
         verify(newPostServiceProxy, times(1)).checkPossibilityCreateReturnOrder("mockedApiKey",
             "mockNumber");
         verify(newPostServiceProxy, times(1)).createParcelReturnOrderToWarehouse("mockedApiKey",
-            "mockNumber",
-            "mockRef");
+            "mockNumber", "mockRef");
     }
 
     @Test
     void testCreateParcelReturnOrderToWarehouse_NoUnreceivedParcels() {
         when(newPostServiceProxy.getUnreceivedParcels(anyString(), anyString(),
-            anyLong())).thenReturn(Collections.emptyList());
+            anyString())).thenReturn(Collections.emptyList());
 
         parcelSearchingJob.createParcelReturnOrderToWarehouse();
 
@@ -108,13 +114,13 @@ class ParcelSearchingJobTest {
     void testGetUnReceivedParcelsCsv() {
         when(novaPoshtaApiProperties.getApiKey()).thenReturn("mockedApiKey");
         when(novaPoshtaApiProperties.getSenderPhoneNumber()).thenReturn("mockedPhoneNumber");
-        when(newPostServiceProxy.getUnreceivedParcels("mockedApiKey", "mockedPhoneNumber", 5L))
+        when(newPostServiceProxy.getUnreceivedParcels("mockedApiKey", "mockedPhoneNumber", "4"))
             .thenReturn(List.of(stubDocumentDataResponse()));
         when(csvProperties.getResponseHeaders()).thenReturn(Arrays.asList("header1", "header2"));
         when(csvProperties.getResponseFields()).thenReturn(Arrays.asList("field1", "field2"));
         when(csvService.exportData(any(), any(), any())).thenReturn("mockedCsvData".getBytes());
 
-        byte[] result = parcelSearchingJob.getUnReceivedParcelsCsv(5);
+        byte[] result = parcelSearchingJob.getUnReceivedParcelsCsv("4");
 
         assertNotNull(result);
         assertTrue(result.length > 0);
@@ -124,7 +130,7 @@ class ParcelSearchingJobTest {
     void testShouldReturnNoUnReceivedParcelsCsv() {
         when(csvService.exportData(any(), any(), any())).thenReturn(new byte[0]);
 
-        byte[] result = parcelSearchingJob.getUnReceivedParcelsCsv(5);
+        byte[] result = parcelSearchingJob.getUnReceivedParcelsCsv("5");
 
         assertNotNull(result);
         assertEquals(0, result.length);

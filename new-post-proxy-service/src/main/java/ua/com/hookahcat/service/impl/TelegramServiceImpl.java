@@ -1,10 +1,11 @@
 package ua.com.hookahcat.service.impl;
 
-import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_FOUR;
 import static ua.com.hookahcat.service.scheduler.ParcelSearchingJob.createCsvFile;
 
 import java.io.File;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,9 +15,13 @@ import ua.com.hookahcat.telegram.bot.service.TelegramService;
 
 @Service
 @AllArgsConstructor
+@RequiredArgsConstructor
 public class TelegramServiceImpl implements TelegramService {
 
     private ParcelSearchingJob parcelSearchingJob;
+
+    @Value("${scheduled.max-storage-days-before-notification}")
+    private String maxStorageDaysBeforeNotification;
 
 
     @Override
@@ -37,6 +42,7 @@ public class TelegramServiceImpl implements TelegramService {
 
     @Override
     public File getFileToSend() {
-        return createCsvFile(parcelSearchingJob.getUnReceivedParcelsCsv(MAX_STORAGE_DAYS_FOUR));
+        return createCsvFile(
+            parcelSearchingJob.getUnReceivedParcelsCsv(maxStorageDaysBeforeNotification));
     }
 }

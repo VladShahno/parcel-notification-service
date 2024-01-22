@@ -52,6 +52,8 @@ email-notification:
 scheduled:
   parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 */2 * ?}
   parcel-return-order-job: ${PARCEL_RETURN_ORDER_JOB:0 0 10 * * ?}
+  max-storage-days-before-return-order: ${MAX_STORAGE_DAYS_BEFORE_RETURN_ORDER:7}
+  max-storage-days-before-notification: ${MAX_STORAGE_DAYS_BEFORE_NOTIFICATION:4}
 
 telegram-bot:
   hookahcat-pns:

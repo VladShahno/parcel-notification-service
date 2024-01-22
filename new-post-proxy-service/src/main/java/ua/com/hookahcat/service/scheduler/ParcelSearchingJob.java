@@ -2,8 +2,6 @@ package ua.com.hookahcat.service.scheduler;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
-import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_FOUR;
-import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS_NINE;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
 
@@ -17,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ua.com.hookahcat.configuration.CsvProperties;
@@ -41,10 +40,16 @@ public class ParcelSearchingJob {
     private final CsvService csvService;
     private final NewPostServiceProxy newPostServiceProxy;
 
+    @Value("${scheduled.max-storage-days-before-return-order}")
+    private String maxStorageDaysBeforeReturnOrder;
+
+    @Value("${scheduled.max-storage-days-before-notification}")
+    private String maxStorageDaysBeforeNotification;
+
     @Scheduled(cron = "${scheduled.parcel-search-job}")
     public void searchUnReceivedParcels() {
         log.info("Start scheduler for searching not received parcels...");
-        var exportedParcelsData = getUnReceivedParcelsCsv(MAX_STORAGE_DAYS_FOUR);
+        var exportedParcelsData = getUnReceivedParcelsCsv(maxStorageDaysBeforeNotification);
         sendEmailWithNotReceivedParcels(exportedParcelsData);
     }
 
@@ -52,7 +57,8 @@ public class ParcelSearchingJob {
     public void createParcelReturnOrderToWarehouse() {
         log.info("Start scheduler for creating parcel return order to warehouse...");
 
-        var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(MAX_STORAGE_DAYS_NINE);
+        var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(
+            maxStorageDaysBeforeReturnOrder);
         var apiKey = novaPoshtaApiProperties.getApiKey();
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
@@ -76,7 +82,7 @@ public class ParcelSearchingJob {
     }
 
 
-    public byte[] getUnReceivedParcelsCsv(long maxStorageDays) {
+    public byte[] getUnReceivedParcelsCsv(String maxStorageDays) {
         var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(maxStorageDays);
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
@@ -115,7 +121,7 @@ public class ParcelSearchingJob {
             .build();
     }
 
-    private List<DocumentDataResponse> getUnreceivedParcelsByMaxStorageDays(long maxStorageDays) {
+    private List<DocumentDataResponse> getUnreceivedParcelsByMaxStorageDays(String maxStorageDays) {
         var unreceivedParcelsData = newPostServiceProxy.getUnreceivedParcels(
             novaPoshtaApiProperties.getApiKey(),
             novaPoshtaApiProperties.getSenderPhoneNumber(), maxStorageDays);

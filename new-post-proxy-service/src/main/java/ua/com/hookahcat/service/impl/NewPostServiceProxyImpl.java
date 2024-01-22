@@ -5,16 +5,21 @@ import static ua.com.hookahcat.common.Constants.CalledMethods.CHECK_POSSIBILITY_
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_DOCUMENT_LIST;
 import static ua.com.hookahcat.common.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
 import static ua.com.hookahcat.common.Constants.CalledMethods.SAVE;
+import static ua.com.hookahcat.common.Constants.DATE_TIME_FROM;
+import static ua.com.hookahcat.common.Constants.DATE_TIME_TO;
 import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
+import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS;
 import static ua.com.hookahcat.common.Constants.ModelsNames.ADDITIONAL_SERVICE;
 import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
 import static ua.com.hookahcat.common.Constants.ONE;
 import static ua.com.hookahcat.common.Constants.ORDER_TYPE_CARGO_RETURN;
 import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
+import static ua.com.hookahcat.common.Constants.PHONE_NUMBER;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
 import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
+import static ua.com.hookahcat.common.Constants.STATUS;
 import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
 import static ua.com.hookahcat.common.Constants.ZERO;
 
@@ -68,6 +73,9 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         statusRequest.setCalledMethod(GET_STATUS_DOCUMENTS);
         statusRequest.setModelName(TRACKING_DOCUMENT);
 
+        log.info("Getting document status for {}",
+            kv(DOCUMENT_NUMBER, statusRequest.getMethodProperties().getDocuments()));
+
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), statusRequest,
             DocumentsStatusResponse.class);
     }
@@ -77,6 +85,10 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         documentListRequest.setCalledMethod(GET_DOCUMENT_LIST);
         documentListRequest.setModelName(INTERNET_DOCUMENT);
 
+        log.info("Getting document list from {} to {}",
+            kv(DATE_TIME_FROM, documentListRequest.getMethodProperties().getDateTimeFrom()),
+            kv(DATE_TIME_TO, documentListRequest.getMethodProperties().getDateTimeTo()));
+
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(), documentListRequest,
             DocumentListResponse.class);
     }
@@ -85,13 +97,18 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     public List<DocumentListDataResponse> getArrivedParcelsForLastMonth(String apiKey) {
         var documentList = collectAllDataForLastMonth(apiKey);
 
+        log.info("Getting document list for last month with {}", kv(STATUS, ARRIVED));
+
         return filterNotReceivedParcels(documentList);
     }
 
     @Override
     public List<DocumentDataResponse> getUnreceivedParcels(String apiKey,
-        String senderPhoneNumber, long maxStorageDays) {
+        String senderPhoneNumber, String maxStorageDays) {
         var arrivedParcelsForLastMonth = getArrivedParcelsForLastMonth(apiKey);
+
+        log.info("Getting unreceived parcels for {} with {}", kv(PHONE_NUMBER, senderPhoneNumber),
+            kv(MAX_STORAGE_DAYS, maxStorageDays));
 
         return filterUnreceivedParcels(arrivedParcelsForLastMonth, senderPhoneNumber,
             maxStorageDays);
@@ -100,6 +117,8 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     @Override
     public ParcelReturnResponse createParcelReturnOrderToAddress(String apiKey,
         String documentNumber) {
+        log.info("Creation return order for {} to a new address",
+            kv(DOCUMENT_NUMBER, documentNumber));
 
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(),
             createParcelReturnToAddressRequest(apiKey, documentNumber), ParcelReturnResponse.class);
@@ -191,7 +210,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     private List<DocumentDataResponse> filterUnreceivedParcels(
         List<DocumentListDataResponse> arrivedParcelsData,
         String senderPhoneNumber,
-        long maxStorageDays) {
+        String maxStorageDays) {
         if (CollectionUtils.isEmpty(arrivedParcelsData)) {
             return Collections.emptyList();
         }
@@ -216,7 +235,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     }
 
     private List<DocumentDataResponse> filterParcelsByMaxStorageDays(
-        List<DocumentDataResponse> fullParcelsData, long maxStorageDays) {
+        List<DocumentDataResponse> fullParcelsData, String maxStorageDays) {
         var todayDate = LocalDate.now();
 
         return fullParcelsData.stream()
@@ -228,7 +247,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
                     var actualDeliveryDateFormatted = actualDeliveryDateTime.toLocalDate()
                         .format(DateTimeFormatter.ofPattern(DATE_PATTERN));
 
-                    return todayDate.minusDays(maxStorageDays)
+                    return todayDate.minusDays(Long.parseLong(maxStorageDays))
                         .isAfter(LocalDate.parse(actualDeliveryDateFormatted,
                             DateTimeFormatter.ofPattern(DATE_PATTERN)));
                 }

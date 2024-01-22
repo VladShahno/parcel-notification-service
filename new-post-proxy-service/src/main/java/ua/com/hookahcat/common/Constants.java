@@ -10,10 +10,7 @@ public class Constants {
     public static final String ONE = "1";
     public static final String PAYMENT_METHOD_CASH = "Cash";
     public static final String ORDER_TYPE_CARGO_RETURN = "orderCargoReturn";
-    public static final int MAX_STORAGE_DAYS_FOUR = 4;
-    public static final int MAX_STORAGE_DAYS_NINE = 9;
     public static final String DOCUMENT_NUMBER = "documentNumber";
-    public static final String API_KEY = "apiKey";
     public static final String PHONE_NUMBER = "phoneNumber";
     public static final String MAX_STORAGE_DAYS = "maxStorageDays";
     public static final String DATE_TIME_FROM = "dateTimeFrom";

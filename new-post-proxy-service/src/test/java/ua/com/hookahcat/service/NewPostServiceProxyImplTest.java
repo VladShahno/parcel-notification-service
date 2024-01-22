@@ -145,7 +145,7 @@ public class NewPostServiceProxyImplTest {
 
     @Test
     public void testGetUnreceivedParcels() throws JsonProcessingException {
-        var maxDaysStorage = 4;
+        var maxDaysStorage = "4";
         var documentListRequest = stubDocumentListRequest();
         var documentsStatusRequest = stubDocumentsStatusRequest();
 
