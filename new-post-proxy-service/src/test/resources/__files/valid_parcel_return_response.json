@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "data": [{
+    "Number" : "documentNumber",
+    "Ref" : "f0dda27e-b911-11ee-a60f-48df37b921db"
+  }],
+  "errors": [],
+  "warnings": [],
+  "info": [],
+  "messageCodes": [],
+  "errorCodes": [],
+  "warningCodes": [],
+  "infoCodes": []
+}

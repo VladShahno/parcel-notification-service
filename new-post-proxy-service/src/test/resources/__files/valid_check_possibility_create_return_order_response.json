@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "data": [
+    {
+      "NonCash": false,
+      "City": "Полтава",
+      "Counterparty": "Приватна особа",
+      "ContactPerson": "Фогель Олександр Олександрович",
+      "Address": "м. Полтава, Відділення №25 (до 30 кг на одне місце): просп. Першотравневий, 19",
+      "Phone": "380631819000",
+      "Ref": "f0dda27e-b911-11ee-a60f-48df37b921db"
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "messageCodes": [],
+  "errorCodes": [],
+  "warningCodes": [],
+  "infoCodes": [
+    "40000301604"
+  ]
+}
