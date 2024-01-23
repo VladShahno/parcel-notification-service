@@ -8,6 +8,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static ua.com.hookahcat.common.Constants.FileNames.NOT_RECEIVED_PARCELS;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 
 import java.io.File;
@@ -29,6 +30,7 @@ import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.model.response.CheckPossibilityCreateReturnData;
 import ua.com.hookahcat.model.response.CheckPossibilityCreateReturnResponse;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
+import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
 import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.service.EmailNotificationService;
@@ -89,7 +91,13 @@ class ParcelSearchingJobTest {
                 .build()))
             .build());
         when(newPostServiceProxy.createParcelReturnOrderToWarehouse("mockedApiKey", "mockNumber",
-            "mockRef")).thenReturn(ParcelReturnResponse.builder().build());
+            "mockRef")).thenReturn(ParcelReturnResponse.builder()
+            .success(true)
+            .data(List.of(ParcelReturnDataResponse.builder()
+                .number("mockNumber")
+                .ref("mockRef")
+                .build()))
+            .build());
 
         parcelSearchingJob.createParcelReturnOrderToWarehouse();
 
@@ -97,10 +105,11 @@ class ParcelSearchingJobTest {
             "mockNumber");
         verify(newPostServiceProxy, times(1)).createParcelReturnOrderToWarehouse("mockedApiKey",
             "mockNumber", "mockRef");
+        verify(emailNotificationService, times(1)).sendEmailNotification(any());
     }
 
     @Test
-    void testCreateParcelReturnOrderToWarehouse_NoUnreceivedParcels() {
+    void testCreateParcelReturnOrderToWarehouseWhenNoUnreceivedParcels() {
         when(newPostServiceProxy.getUnreceivedParcels(anyString(), anyString(),
             anyString())).thenReturn(Collections.emptyList());
 
@@ -108,6 +117,8 @@ class ParcelSearchingJobTest {
 
         verify(newPostServiceProxy, times(0)).checkPossibilityCreateReturnOrder(anyString(),
             anyString());
+        verify(emailNotificationService, times(0)).sendEmailNotification(any());
+
     }
 
     @Test
@@ -140,7 +151,8 @@ class ParcelSearchingJobTest {
     void testCreateCsvFile() {
         when(csvService.exportData(any(), any(), any())).thenReturn("mockedCsvData".getBytes());
 
-        File file = ParcelSearchingJob.createCsvFile("mockedCsvData".getBytes());
+        File file = ParcelSearchingJob.createCsvFile("mockedCsvData".getBytes(),
+            NOT_RECEIVED_PARCELS);
 
         assertNotNull(file);
         assertTrue(file.exists());

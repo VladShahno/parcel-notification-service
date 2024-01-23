@@ -2,6 +2,7 @@ package ua.com.hookahcat.service.scheduler;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
 import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
+import static ua.com.hookahcat.common.Constants.FileNames.NOT_RECEIVED_PARCELS;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
 
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,8 @@ import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
+import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
+import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.model.EmailNotificationData;
 import ua.com.hookahcat.notification.service.EmailNotificationService;
@@ -49,8 +53,11 @@ public class ParcelSearchingJob {
     @Scheduled(cron = "${scheduled.parcel-search-job}")
     public void searchUnReceivedParcels() {
         log.info("Start scheduler for searching not received parcels...");
+
         var exportedParcelsData = getUnReceivedParcelsCsv(maxStorageDaysBeforeNotification);
-        sendEmailWithNotReceivedParcels(exportedParcelsData);
+        sendEmailWithNotReceivedParcelsData(exportedParcelsData,
+            emailNotificationProperties.getNotReceivedParcelsSubject(),
+            emailNotificationProperties.getNotReceivedParcelsMessage());
     }
 
     @Scheduled(cron = "${scheduled.parcel-return-order-job}")
@@ -62,6 +69,8 @@ public class ParcelSearchingJob {
         var apiKey = novaPoshtaApiProperties.getApiKey();
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
+            List<ParcelReturnResponse> parcelReturnResponses = new ArrayList<>();
+
             unreceivedParcelsData.parallelStream()
                 .forEach(documentDataResponse -> {
                     var documentNumber = documentDataResponse.getNumber();
@@ -69,16 +78,19 @@ public class ParcelSearchingJob {
                         apiKey, documentNumber);
                     if (recipientWarehouse.isSuccess()) {
                         var warehouseRef = recipientWarehouse.getData().get(0).getRef();
-                        newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey,
-                            documentNumber,
-                            warehouseRef);
+                        parcelReturnResponses.add(
+                            newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey,
+                                documentNumber, warehouseRef));
+
                         log.info("Return order to warehouse successfully created for {} and {}",
                             kv(DOCUMENT_NUMBER, documentNumber),
                             kv(RECIPIENT_WAREHOUSE, warehouseRef));
                     }
                 });
+            sendEmailForCreatedReturnParcelsRequest(parcelReturnResponses);
+        } else {
+            log.info("Parcels that can be returned not found");
         }
-        log.info("Parcels that can be returned not found");
     }
 
 
@@ -92,33 +104,54 @@ public class ParcelSearchingJob {
         return new byte[0];
     }
 
-    public static File createCsvFile(byte[] exportedParcelsData) {
-        var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN));
-        var fileName = "Not received parcels [" + todayDate + "].csv";
-        var file = new File(fileName);
-        try {
-            FileUtils.writeByteArrayToFile(file, exportedParcelsData);
-        } catch (IOException e) {
-            throw new CustomRuntimeException(e.getMessage());
+    private void sendEmailForCreatedReturnParcelsRequest(
+        List<ParcelReturnResponse> parcelReturnResponses) {
+        if (CollectionUtils.isNotEmpty(parcelReturnResponses)) {
+            var documentNumbers = parcelReturnResponses.stream()
+                .map(parcelReturnResponse -> parcelReturnResponse.getData().stream()
+                    .map(ParcelReturnDataResponse::getNumber))
+                .toList();
+
+            emailNotificationService.sendEmailNotification(
+                prepareEmailNotificationData(null, null,
+                    emailNotificationProperties.getReturnedParcelsSubject(),
+                    emailNotificationProperties.getReturnedParcelsMessage() + documentNumbers));
         }
-        return file;
     }
 
-    private void sendEmailWithNotReceivedParcels(byte[] exportedParcelsData) {
+    private void sendEmailWithNotReceivedParcelsData(byte[] exportedParcelsData, String subject,
+        String message) {
         if (Objects.nonNull(exportedParcelsData)) {
             emailNotificationService.sendEmailNotification(
-                prepareEmailNotificationData(exportedParcelsData));
+                prepareEmailNotificationData(exportedParcelsData, NOT_RECEIVED_PARCELS, subject,
+                    message));
         }
     }
 
-    private EmailNotificationData prepareEmailNotificationData(byte[] exportedParcelsData) {
+    private EmailNotificationData prepareEmailNotificationData(byte[] exportedParcelsData,
+        String fileName, String subject, String message) {
         return EmailNotificationData.builder()
             .recipient(emailNotificationProperties.getRecipient())
             .sender(emailNotificationProperties.getSender())
-            .subject(emailNotificationProperties.getSubject())
-            .message(emailNotificationProperties.getMessage())
-            .file(createCsvFile(exportedParcelsData))
+            .subject(subject)
+            .message(message)
+            .file(createCsvFile(exportedParcelsData, fileName))
             .build();
+    }
+
+    public static File createCsvFile(byte[] exportedParcelsData, String fileName) {
+        if (Objects.nonNull(exportedParcelsData)) {
+            var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN));
+            var pathName = fileName + todayDate + "].csv";
+            var file = new File(pathName);
+            try {
+                FileUtils.writeByteArrayToFile(file, exportedParcelsData);
+            } catch (IOException e) {
+                throw new CustomRuntimeException(e.getMessage());
+            }
+            return file;
+        }
+        return null;
     }
 
     private List<DocumentDataResponse> getUnreceivedParcelsByMaxStorageDays(String maxStorageDays) {

@@ -9,8 +9,10 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("email-notification")
 public class EmailNotificationProperties {
 
-    private String subject;
+    private String notReceivedParcelsSubject;
+    private String returnedParcelsSubject;
     private String recipient;
     private String sender;
-    private String message;
+    private String notReceivedParcelsMessage;
+    private String returnedParcelsMessage;
 }

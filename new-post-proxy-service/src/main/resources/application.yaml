@@ -44,10 +44,12 @@ spring:
     username: ${SMTP_LOGIN:vlad.shahno11@gmail.com}
 
 email-notification:
-  subject: ${EMAIL_SUBJECT:Unreceived parcels found!}
   recipient: ${EMAIL_RECIPIENT:manko94@ukr.net}
   sender: ${EMAIL_SENDER:vlad.shahno11@gmail.com}
-  message: ${EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
+  not-received-parcels-subject: ${NOT_RECEIVED_PARCELS_EMAIL_SUBJECT:Not received parcels found!}
+  not-received-parcels-message: ${NOT_RECEIVED_PARCELS_EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
+  returned-parcels-subject: ${RETURNED_PARCELS_EMAIL_SUBJECT:New parcel return request have been created!}
+  returned-parcels-message: ${RETURNED_PARCELS_EMAIL_MESSAGE:This letter was generated automatically because a new parcel return request(s) was created for the following EN(s) :.}
 
 scheduled:
   parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 */2 * ?}

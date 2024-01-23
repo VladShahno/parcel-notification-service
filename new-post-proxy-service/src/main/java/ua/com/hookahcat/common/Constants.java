@@ -48,4 +48,11 @@ public class Constants {
         public static final String DATE_PATTERN = "dd.MM.yyyy";
         public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     }
+
+    @UtilityClass
+    public class FileNames {
+
+        public static final String NOT_RECEIVED_PARCELS = "Not received parcels [";
+        public static final String RETURNED_PARCELS = "Returned parcels [";
+    }
 }
