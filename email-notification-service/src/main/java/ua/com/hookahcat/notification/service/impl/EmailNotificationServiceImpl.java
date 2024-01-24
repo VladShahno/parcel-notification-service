@@ -4,6 +4,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -32,7 +33,9 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
             mimeMessageHelper.setFrom(emailNotificationData.getSender());
             mimeMessageHelper.setSubject(emailNotificationData.getSubject());
             mimeMessageHelper.setText(emailNotificationData.getMessage());
-            mimeMessageHelper.addAttachment(file.getName(), file);
+            if (Objects.nonNull(file)) {
+                mimeMessageHelper.addAttachment(file.getName(), file);
+            }
         } catch (MessagingException e) {
             throw new InternalErrorException(e.getMessage());
         }
