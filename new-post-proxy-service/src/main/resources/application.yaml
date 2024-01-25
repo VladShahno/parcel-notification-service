@@ -7,14 +7,14 @@ server:
 
 novaposhta-api:
   base-url: ${API_BASE_URL:https://api.novaposhta.ua/v2.0/json/}
-  api-key: ${API_KEY:1e10cc2afc177c626ec671616e7a6468}
-  sender-phone-number: ${SENDER_PHONE_NUMBER:380631819000}
+  api-key: ${API_KEY:}
+  sender-phone-number: ${SENDER_PHONE_NUMBER:}
   return-order:
-    recipient-settlement: ${RECIPIENT_SETTELEMENT:e71d006d-4b33-11e4-ab6d-005056801329}
-    recipient-settlement-street: ${RECIPIENT_SETTELEMENT_STREET:07a6f1ff-6846-11e6-8304-00505688561d}
-    building-number: ${BUILDING_NUMBER:19}
-    return-reason: ${RETURN_REASON:49754eb2-a9e1-11e3-9fa0-0050568002cf}
-    return-subtype-reason: ${RETURN_SUBTYPE_REASON:0679cdb5-898e-11ea-a970-b8830365ade4}
+    recipient-settlement: ${RECIPIENT_SETTELEMENT:}
+    recipient-settlement-street: ${RECIPIENT_SETTELEMENT_STREET:}
+    building-number: ${BUILDING_NUMBER:}
+    return-reason: ${RETURN_REASON:}
+    return-subtype-reason: ${RETURN_SUBTYPE_REASON:}
 
 web.client:
   http-client-response-timeout: ${HTTP_CLIENT_RESPONSE_TIMEOUT:60}
@@ -40,12 +40,12 @@ spring:
             enable: true
         transport:
           protocol: smtp
-    password: ${SMTP_PASSWORD:efih ttao vgns opqf}
-    username: ${SMTP_LOGIN:vlad.shahno11@gmail.com}
+    password: ${SMTP_PASSWORD:}
+    username: ${SMTP_LOGIN:}
 
 email-notification:
-  recipient: ${EMAIL_RECIPIENT:manko94@ukr.net}
-  sender: ${EMAIL_SENDER:vlad.shahno11@gmail.com}
+  recipient: ${EMAIL_RECIPIENT:}
+  sender: ${EMAIL_SENDER:}
   not-received-parcels-subject: ${NOT_RECEIVED_PARCELS_EMAIL_SUBJECT:Not received parcels found!}
   not-received-parcels-message: ${NOT_RECEIVED_PARCELS_EMAIL_MESSAGE:This letter was generated automatically because were detected parcels that were waiting for the recipient at the post office for more than four days from the time of delivery.}
   returned-parcels-subject: ${RETURNED_PARCELS_EMAIL_SUBJECT:New parcel return request have been created!}
@@ -54,10 +54,10 @@ email-notification:
 scheduled:
   parcel-search-job: ${PARCEL_SEARCH_JOB:0 0 10 */2 * ?}
   parcel-return-order-job: ${PARCEL_RETURN_ORDER_JOB:0 0 11 * * ?}
-  max-storage-days-before-return-order: ${MAX_STORAGE_DAYS_BEFORE_RETURN_ORDER:7}
+  max-storage-days-before-return-order: ${MAX_STORAGE_DAYS_BEFORE_RETURN_ORDER:6}
   max-storage-days-before-notification: ${MAX_STORAGE_DAYS_BEFORE_NOTIFICATION:4}
 
 telegram-bot:
   hookahcat-pns:
-    bot-token: ${HOOKAH_CAT_PNS_TOKEN:6482509948:AAEmVqZXy5MG3EZrEuMZ1wutoZ2iAbo0Fh8}
-    bot-username: ${HOOKAH_CAT_PNS_USERNAME:hookahcat_pns_bot}
+    bot-token: ${HOOKAH_CAT_PNS_TOKEN:}
+    bot-username: ${HOOKAH_CAT_PNS_USERNAME:}
