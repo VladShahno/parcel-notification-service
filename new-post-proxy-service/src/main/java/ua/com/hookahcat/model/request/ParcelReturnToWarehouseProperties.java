@@ -26,6 +26,6 @@ public class ParcelReturnToWarehouseProperties {
     @JsonProperty("OrderType")
     private String orderType;
 
-    @JsonProperty("RecipientWarehouse")
-    private String recipientWarehouse;
+    @JsonProperty("ReturnAddressRef")
+    private String returnAddressRef;
 }

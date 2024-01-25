@@ -4,7 +4,7 @@ import static net.logstash.logback.argument.StructuredArguments.kv;
 import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
 import static ua.com.hookahcat.common.Constants.FileNames.NOT_RECEIVED_PARCELS;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
-import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
+import static ua.com.hookahcat.common.Constants.RETURN_ADDRESS_REF;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,20 +74,24 @@ public class ParcelSearchingJob {
             unreceivedParcelsData.parallelStream()
                 .forEach(documentDataResponse -> {
                     var documentNumber = documentDataResponse.getNumber();
-                    var recipientWarehouse = newPostServiceProxy.checkPossibilityCreateReturnOrder(
+                    var checkPossibilityCreateReturnResponse = newPostServiceProxy.checkPossibilityCreateReturnOrder(
                         apiKey, documentNumber);
-                    if (recipientWarehouse.isSuccess()) {
-                        var warehouseRef = recipientWarehouse.getData().get(0).getRef();
+                    if (checkPossibilityCreateReturnResponse.isSuccess()) {
+                        var returnAddressRef = checkPossibilityCreateReturnResponse.getData().get(0)
+                            .getRef();
                         parcelReturnResponses.add(
                             newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey,
-                                documentNumber, warehouseRef));
+                                documentNumber, returnAddressRef));
 
                         log.info("Return order to warehouse successfully created for {} and {}",
                             kv(DOCUMENT_NUMBER, documentNumber),
-                            kv(RECIPIENT_WAREHOUSE, warehouseRef));
+                            kv(RETURN_ADDRESS_REF, returnAddressRef));
                     }
                 });
-            sendEmailForCreatedReturnParcelsRequest(parcelReturnResponses);
+            sendEmailForCreatedReturnParcelsRequest(
+                parcelReturnResponses.stream()
+                    .filter(ParcelReturnResponse::isSuccess)
+                    .toList());
         } else {
             log.info("Parcels that can be returned not found");
         }
@@ -107,9 +111,9 @@ public class ParcelSearchingJob {
     private void sendEmailForCreatedReturnParcelsRequest(
         List<ParcelReturnResponse> parcelReturnResponses) {
         if (CollectionUtils.isNotEmpty(parcelReturnResponses)) {
-            var documentNumbers = parcelReturnResponses.stream()
-                .map(parcelReturnResponse -> parcelReturnResponse.getData().stream()
-                    .map(ParcelReturnDataResponse::getNumber))
+            List<String> documentNumbers = parcelReturnResponses.stream()
+                .flatMap(parcelReturnResponse -> parcelReturnResponse.getData().stream())
+                .map(ParcelReturnDataResponse::getNumber)
                 .toList();
 
             emailNotificationService.sendEmailNotification(

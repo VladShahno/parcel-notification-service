@@ -24,7 +24,7 @@ public interface NewPostServiceProxy {
     ParcelReturnResponse createParcelReturnOrderToAddress(String apiKey, String documentNumber);
 
     ParcelReturnResponse createParcelReturnOrderToWarehouse(String apiKey, String documentNumber,
-        String recipientWarehouse);
+        String returnAddressRef);
 
     CheckPossibilityCreateReturnResponse checkPossibilityCreateReturnOrder(String apiKey,
         String documentNumber);

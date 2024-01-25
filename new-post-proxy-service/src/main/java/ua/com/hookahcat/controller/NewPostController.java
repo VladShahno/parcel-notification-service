@@ -150,8 +150,8 @@ public class NewPostController {
         @RequestParam String documentNumber,
         @Parameter(description = "Identifier (REF) of the warehouse for return, must be taken from "
             + "the response from checkPossibilityCreateReturnOrder API", example = "e71d006d-4b33-11e4-ab6d-005056801329")
-        @RequestParam String recipientWarehouse) {
+        @RequestParam String returnAddressRef) {
         return newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey, documentNumber,
-            recipientWarehouse);
+            returnAddressRef);
     }
 }

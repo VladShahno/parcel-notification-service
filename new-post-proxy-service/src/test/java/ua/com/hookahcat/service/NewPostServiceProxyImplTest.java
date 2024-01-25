@@ -279,7 +279,7 @@ public class NewPostServiceProxyImplTest {
                 .reason(RETURN_REASON)
                 .subtypeReason(SUB_TYPE_RETURN_REASON)
                 .orderType(ORDER_TYPE_CARGO_RETURN)
-                .recipientWarehouse("f0dda27e-b911-11ee-a60f-48df37b921db")
+                .returnAddressRef("f0dda27e-b911-11ee-a60f-48df37b921db")
                 .build())
             .build();
     }

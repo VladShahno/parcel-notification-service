@@ -19,7 +19,7 @@ import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
 import static ua.com.hookahcat.common.Constants.PHONE_NUMBER;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
 import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
-import static ua.com.hookahcat.common.Constants.RECIPIENT_WAREHOUSE;
+import static ua.com.hookahcat.common.Constants.RETURN_ADDRESS_REF;
 import static ua.com.hookahcat.common.Constants.STATUS;
 import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
 import static ua.com.hookahcat.common.Constants.ZERO;
@@ -130,12 +130,12 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
 
     @Override
     public ParcelReturnResponse createParcelReturnOrderToWarehouse(String apiKey,
-        String documentNumber, String recipientWarehouse) {
+        String documentNumber, String returnAddressRef) {
         log.info("Creating parcel return order to warehouse for {} and {}",
-            kv(DOCUMENT_NUMBER, documentNumber), kv(RECIPIENT_WAREHOUSE, recipientWarehouse));
+            kv(DOCUMENT_NUMBER, documentNumber), kv(RETURN_ADDRESS_REF, returnAddressRef));
 
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(),
-            createParcelReturnToWarehouseRequest(apiKey, documentNumber, recipientWarehouse),
+            createParcelReturnToWarehouseRequest(apiKey, documentNumber, returnAddressRef),
             ParcelReturnResponse.class);
     }
 
@@ -261,7 +261,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
     }
 
     private ParcelReturnToWarehouseRequest createParcelReturnToWarehouseRequest(String apiKey,
-        String documentNumber, String recipientWarehouse) {
+        String documentNumber, String returnAddressRef) {
         var returnOrderProperties = novaPoshtaApiProperties.getReturnOrder();
 
         return ParcelReturnToWarehouseRequest.builder()
@@ -274,7 +274,7 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
                 .reason(returnOrderProperties.getReturnReason())
                 .subtypeReason(returnOrderProperties.getReturnSubtypeReason())
                 .orderType(ORDER_TYPE_CARGO_RETURN)
-                .recipientWarehouse(recipientWarehouse)
+                .returnAddressRef(returnAddressRef)
                 .build())
             .build();
     }
