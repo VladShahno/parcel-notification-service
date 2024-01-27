@@ -1,4 +1,4 @@
-package ua.com.hookahcat.common;
+package ua.com.hookahcat.util;
 
 import lombok.experimental.UtilityClass;
 

@@ -61,3 +61,5 @@ telegram-bot:
   hookahcat-pns:
     bot-token: ${HOOKAH_CAT_PNS_TOKEN:}
     bot-username: ${HOOKAH_CAT_PNS_USERNAME:}
+    user-chatIds: ${HOOKAH_CAT_PNS_USER_IDS:366288727,436310746}
+    returned-parcels-message: ${HOOKAH_CAT_PNS_RETURNED_PARCELS_MESSAGE:Automatically returned the following parcels:}

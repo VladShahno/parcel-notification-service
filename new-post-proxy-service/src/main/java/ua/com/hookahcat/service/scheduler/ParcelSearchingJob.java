@@ -1,36 +1,27 @@
 package ua.com.hookahcat.service.scheduler;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
-import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
-import static ua.com.hookahcat.common.Constants.FileNames.NOT_RECEIVED_PARCELS;
-import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
-import static ua.com.hookahcat.common.Constants.RETURN_ADDRESS_REF;
+import static ua.com.hookahcat.util.Constants.DOCUMENT_NUMBER;
+import static ua.com.hookahcat.util.Constants.FileNames.NOT_RECEIVED_PARCELS;
+import static ua.com.hookahcat.util.Constants.RETURN_ADDRESS_REF;
+import static ua.com.hookahcat.util.NewPostUtils.createCsvFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
-import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.model.response.DocumentDataResponse;
-import ua.com.hookahcat.model.response.ParcelReturnDataResponse;
-import ua.com.hookahcat.model.response.ParcelReturnResponse;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.model.EmailNotificationData;
 import ua.com.hookahcat.notification.service.EmailNotificationService;
-import ua.com.hookahcat.reststarter.exception.CustomRuntimeException;
 import ua.com.hookahcat.service.NewPostServiceProxy;
+import ua.com.hookahcat.telegram.bot.service.HookahCatTelegramBotService;
 
 @Slf4j
 @Service
@@ -38,11 +29,10 @@ import ua.com.hookahcat.service.NewPostServiceProxy;
 public class ParcelSearchingJob {
 
     private final EmailNotificationService emailNotificationService;
-    private final CsvProperties csvProperties;
     private final NovaPoshtaApiProperties novaPoshtaApiProperties;
     private final EmailNotificationProperties emailNotificationProperties;
-    private final CsvService csvService;
     private final NewPostServiceProxy newPostServiceProxy;
+    private final HookahCatTelegramBotService hookahCatTelegramBotService;
 
     @Value("${scheduled.max-storage-days-before-return-order}")
     private String maxStorageDaysBeforeReturnOrder;
@@ -54,7 +44,8 @@ public class ParcelSearchingJob {
     public void searchUnReceivedParcels() {
         log.info("Start scheduler for searching not received parcels...");
 
-        var exportedParcelsData = getUnReceivedParcelsCsv(maxStorageDaysBeforeNotification);
+        var exportedParcelsData = newPostServiceProxy.getUnReceivedParcelsCsv(
+            maxStorageDaysBeforeNotification);
         sendEmailWithNotReceivedParcelsData(exportedParcelsData,
             emailNotificationProperties.getNotReceivedParcelsSubject(),
             emailNotificationProperties.getNotReceivedParcelsMessage());
@@ -69,7 +60,7 @@ public class ParcelSearchingJob {
         var apiKey = novaPoshtaApiProperties.getApiKey();
 
         if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
-            List<ParcelReturnResponse> parcelReturnResponses = new ArrayList<>();
+            List<String> documentNumbers = new ArrayList<>();
 
             unreceivedParcelsData.parallelStream()
                 .forEach(documentDataResponse -> {
@@ -79,47 +70,30 @@ public class ParcelSearchingJob {
                     if (checkPossibilityCreateReturnResponse.isSuccess()) {
                         var returnAddressRef = checkPossibilityCreateReturnResponse.getData().get(0)
                             .getRef();
-                        parcelReturnResponses.add(
-                            newPostServiceProxy.createParcelReturnOrderToWarehouse(apiKey,
-                                documentNumber, returnAddressRef));
+                        var isSuccess = newPostServiceProxy.createParcelReturnOrderToWarehouse(
+                            apiKey, documentNumber, returnAddressRef).isSuccess();
+
+                        if (isSuccess) {
+                            documentNumbers.add(documentNumber);
+                        }
 
                         log.info("Return order to warehouse successfully created for {} and {}",
                             kv(DOCUMENT_NUMBER, documentNumber),
                             kv(RETURN_ADDRESS_REF, returnAddressRef));
                     }
                 });
-            sendEmailForCreatedReturnParcelsRequest(
-                parcelReturnResponses.stream()
-                    .filter(ParcelReturnResponse::isSuccess)
-                    .toList());
+            sendEmailForCreatedReturnParcelsRequest(documentNumbers);
+            hookahCatTelegramBotService.sendMessageWithNotReceivedParcelsNumbers(documentNumbers);
         } else {
             log.info("Parcels that can be returned not found");
         }
     }
 
-
-    public byte[] getUnReceivedParcelsCsv(String maxStorageDays) {
-        var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(maxStorageDays);
-
-        if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
-            return csvService.exportData(unreceivedParcelsData,
-                csvProperties.getResponseHeaders(), csvProperties.getResponseFields());
-        }
-        return new byte[0];
-    }
-
-    private void sendEmailForCreatedReturnParcelsRequest(
-        List<ParcelReturnResponse> parcelReturnResponses) {
-        if (CollectionUtils.isNotEmpty(parcelReturnResponses)) {
-            List<String> documentNumbers = parcelReturnResponses.stream()
-                .flatMap(parcelReturnResponse -> parcelReturnResponse.getData().stream())
-                .map(ParcelReturnDataResponse::getNumber)
-                .toList();
-
-            emailNotificationService.sendEmailNotification(
-                prepareEmailNotificationData(null, null,
-                    emailNotificationProperties.getReturnedParcelsSubject(),
-                    emailNotificationProperties.getReturnedParcelsMessage() + documentNumbers));
+    private void sendEmailForCreatedReturnParcelsRequest(List<String> documentNumbers) {
+        if (CollectionUtils.isNotEmpty(documentNumbers)) {
+            emailNotificationService.sendEmailNotification(prepareEmailNotificationData(null, null,
+                emailNotificationProperties.getReturnedParcelsSubject(),
+                emailNotificationProperties.getReturnedParcelsMessage() + documentNumbers));
         }
     }
 
@@ -141,21 +115,6 @@ public class ParcelSearchingJob {
             .message(message)
             .file(createCsvFile(exportedParcelsData, fileName))
             .build();
-    }
-
-    public static File createCsvFile(byte[] exportedParcelsData, String fileName) {
-        if (Objects.nonNull(exportedParcelsData)) {
-            var todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DATE_PATTERN));
-            var pathName = fileName + todayDate + "].csv";
-            var file = new File(pathName);
-            try {
-                FileUtils.writeByteArrayToFile(file, exportedParcelsData);
-            } catch (IOException e) {
-                throw new CustomRuntimeException(e.getMessage());
-            }
-            return file;
-        }
-        return null;
     }
 
     private List<DocumentDataResponse> getUnreceivedParcelsByMaxStorageDays(String maxStorageDays) {

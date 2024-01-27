@@ -8,35 +8,37 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static ua.com.hookahcat.common.Constants.CalledMethods.CHECK_POSSIBILITY_CREATE_RETURN;
-import static ua.com.hookahcat.common.Constants.CalledMethods.GET_DOCUMENT_LIST;
-import static ua.com.hookahcat.common.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
-import static ua.com.hookahcat.common.Constants.CalledMethods.SAVE;
-import static ua.com.hookahcat.common.Constants.ModelsNames.ADDITIONAL_SERVICE;
-import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
-import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
-import static ua.com.hookahcat.common.Constants.ONE;
-import static ua.com.hookahcat.common.Constants.ORDER_TYPE_CARGO_RETURN;
-import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
-import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
-import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
-import static ua.com.hookahcat.common.Constants.ZERO;
+import static ua.com.hookahcat.util.Constants.CalledMethods.CHECK_POSSIBILITY_CREATE_RETURN;
+import static ua.com.hookahcat.util.Constants.CalledMethods.GET_DOCUMENT_LIST;
+import static ua.com.hookahcat.util.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
+import static ua.com.hookahcat.util.Constants.CalledMethods.SAVE;
+import static ua.com.hookahcat.util.Constants.ModelsNames.ADDITIONAL_SERVICE;
+import static ua.com.hookahcat.util.Constants.ModelsNames.INTERNET_DOCUMENT;
+import static ua.com.hookahcat.util.Constants.ModelsNames.TRACKING_DOCUMENT;
+import static ua.com.hookahcat.util.Constants.ONE;
+import static ua.com.hookahcat.util.Constants.ORDER_TYPE_CARGO_RETURN;
+import static ua.com.hookahcat.util.Constants.PAYMENT_METHOD_CASH;
+import static ua.com.hookahcat.util.Constants.Patterns.DATE_PATTERN;
+import static ua.com.hookahcat.util.Constants.StateNames.ARRIVED;
+import static ua.com.hookahcat.util.Constants.ZERO;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.reactive.function.client.WebClient;
+import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties.ReturnOrder;
+import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnProperties;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnRequest;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
@@ -50,16 +52,16 @@ import ua.com.hookahcat.model.request.TrackingDocument;
 import ua.com.hookahcat.model.request.TrackingDocumentMethodProperties;
 import ua.com.hookahcat.service.impl.NewPostServiceProxyImpl;
 
-@ExtendWith(SpringExtension.class)
-public class NewPostServiceProxyImplTest {
+@SpringBootTest
+class NewPostServiceProxyImplTest {
 
     private WireMockServer wireMockServer;
 
-    @LocalServerPort
-    private String port;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private NewPostServiceProxyImpl newPostServiceProxy;
+    @Autowired
+    private CsvService csvService;
 
     private static final String MOCK_API_KEY = "mockApiKey";
     private static final String DOCUMENT_NUMBER = "documentNumber";
@@ -71,9 +73,11 @@ public class NewPostServiceProxyImplTest {
     private static final String RECIPIENT_SETTLEMENT_STREET = "recipientSettlementStreet";
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         wireMockServer = new WireMockServer();
         wireMockServer.start();
+
+        var csvProperties = getCsvProperties();
 
         var novaPoshtaApiProperties = new NovaPoshtaApiProperties();
         novaPoshtaApiProperties.setBaseUrl("http://localhost:" + wireMockServer.port());
@@ -91,16 +95,17 @@ public class NewPostServiceProxyImplTest {
             .baseUrl(novaPoshtaApiProperties.getBaseUrl())
             .build();
 
-        newPostServiceProxy = new NewPostServiceProxyImpl(novaPoshtaApiProperties, webClient);
+        newPostServiceProxy = new NewPostServiceProxyImpl(novaPoshtaApiProperties, webClient,
+            csvProperties, csvService);
     }
 
     @AfterEach
-    public void teardown() {
+    void teardown() {
         wireMockServer.stop();
     }
 
     @Test
-    public void testGetDocumentsStatus() throws JsonProcessingException {
+    void testGetDocumentsStatus() throws JsonProcessingException {
         var documentsStatusRequest = stubDocumentsStatusRequest();
         stubRequestToNovaPoshta(documentsStatusRequest, "valid_document_status_response.json");
 
@@ -113,7 +118,7 @@ public class NewPostServiceProxyImplTest {
     }
 
     @Test
-    public void testGetDocumentList() throws JsonProcessingException {
+    void testGetDocumentList() throws JsonProcessingException {
         var documentListRequest = stubDocumentListRequest();
         stubRequestToNovaPoshta(documentListRequest, "valid_document_list_response.json");
 
@@ -127,7 +132,7 @@ public class NewPostServiceProxyImplTest {
     }
 
     @Test
-    public void testGetArrivedParcelsForLastMonth() throws JsonProcessingException {
+    void testGetArrivedParcelsForLastMonth() throws JsonProcessingException {
         var documentListRequest = stubDocumentListRequest();
         stubRequestToNovaPoshta(documentListRequest, "valid_document_list_response.json");
         documentListRequest.getMethodProperties().setPage("2");
@@ -144,7 +149,7 @@ public class NewPostServiceProxyImplTest {
     }
 
     @Test
-    public void testGetUnreceivedParcels() throws JsonProcessingException {
+    void testGetUnreceivedParcels() throws JsonProcessingException {
         var maxDaysStorage = "4";
         var documentListRequest = stubDocumentListRequest();
         var documentsStatusRequest = stubDocumentsStatusRequest();
@@ -166,7 +171,7 @@ public class NewPostServiceProxyImplTest {
     }
 
     @Test
-    public void testCreateParcelReturnOrderToAddress() throws JsonProcessingException {
+    void testCreateParcelReturnOrderToAddress() throws JsonProcessingException {
         var parcelReturnToAddressRequest = stubParcelReturnToAddressRequest();
         stubRequestToNovaPoshta(parcelReturnToAddressRequest, "valid_parcel_return_response.json");
 
@@ -180,7 +185,7 @@ public class NewPostServiceProxyImplTest {
     }
 
     @Test
-    public void testCreateParcelReturnOrderToWarehouse() throws JsonProcessingException {
+    void testCreateParcelReturnOrderToWarehouse() throws JsonProcessingException {
         var checkPossibilityCreateReturnRequest = stubCheckPossibilityCreateReturnRequest();
         var parcelReturnToWarehouseRequest = stubParcelReturnToWarehouseRequest();
         stubRequestToNovaPoshta(checkPossibilityCreateReturnRequest,
@@ -201,7 +206,7 @@ public class NewPostServiceProxyImplTest {
     }
 
     @Test
-    public void testCheckPossibilityCreateReturnOrder() throws JsonProcessingException {
+    void testCheckPossibilityCreateReturnOrder() throws JsonProcessingException {
         var checkPossibilityCreateReturnRequest = stubCheckPossibilityCreateReturnRequest();
         stubRequestToNovaPoshta(checkPossibilityCreateReturnRequest,
             "valid_check_possibility_create_return_order_response.json");
@@ -212,6 +217,37 @@ public class NewPostServiceProxyImplTest {
         assertNotNull(response);
         assertEquals("f0dda27e-b911-11ee-a60f-48df37b921db", response.getData().get(0).getRef());
         assertTrue(response.isSuccess());
+    }
+
+    @Test
+    void testGetUnReceivedParcelsCsv() throws JsonProcessingException {
+        var documentListRequest = stubDocumentListRequest();
+        var documentsStatusRequest = stubDocumentsStatusRequest();
+
+        stubRequestToNovaPoshta(documentListRequest, "valid_document_list_response.json");
+        documentListRequest.getMethodProperties().setPage("2");
+        stubRequestToNovaPoshta(documentListRequest, "valid_document_list_empty_response.json");
+        stubRequestToNovaPoshta(documentsStatusRequest, "valid_document_status_response.json");
+
+        byte[] result = newPostServiceProxy.getUnReceivedParcelsCsv("4");
+
+        var text = new String(result, StandardCharsets.UTF_8);
+
+        assertNotNull(result);
+        assertTrue(result.length > 0);
+    }
+
+    @Test
+    void testShouldReturnNoUnReceivedParcelsCsv() throws JsonProcessingException {
+        var documentListRequest = stubDocumentListRequest();
+
+        stubRequestToNovaPoshta(documentListRequest, "valid_document_list_empty_response.json");
+        documentListRequest.getMethodProperties().setPage("2");
+
+        byte[] result = newPostServiceProxy.getUnReceivedParcelsCsv("5");
+
+        assertNotNull(result);
+        assertEquals(0, result.length);
     }
 
     private void stubRequestToNovaPoshta(Object request, String responseFileName)
@@ -300,5 +336,43 @@ public class NewPostServiceProxyImplTest {
                 .paymentMethod(PAYMENT_METHOD_CASH)
                 .build())
             .build();
+    }
+
+    private CsvProperties getCsvProperties() {
+        var csvProperties = new CsvProperties();
+        csvProperties.setExportCsvLimit(500);
+        csvProperties.setResponseFields(List.of(
+            "Number",
+            "RecipientFullNameEW",
+            "PhoneRecipient",
+            "CityRecipient",
+            "ActualDeliveryDate",
+            "RedeliverySum",
+            "LastAmountTransferGM",
+            "DocumentCost",
+            "DatePayedKeeping",
+            "ExpressWaybillAmountToPay",
+            "DateReturnCargo",
+            "DateFirstDayStorage",
+            "AnnouncedPrice",
+            "StoragePrice"
+        ));
+        csvProperties.setResponseHeaders(List.of(
+            "ЕН",
+            "ПІБ отримувача з накладної",
+            "Номер телефону отримувача",
+            "Місто отримувача",
+            "Фактична дата доставки",
+            "Сума зворотної доставки",
+            "Поточне значення суми грошового переказу",
+            "Вартість доставки",
+            "Дата початку платного зберігання",
+            "Сума оплати по ЕН",
+            "Дата повернення вантажу",
+            "Дата початку зберігання (після не отримання)",
+            "Оголошена вартість",
+            "Вартість зберігання"
+        ));
+        return csvProperties;
     }
 }

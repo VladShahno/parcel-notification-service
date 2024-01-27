@@ -28,4 +28,6 @@ public interface NewPostServiceProxy {
 
     CheckPossibilityCreateReturnResponse checkPossibilityCreateReturnOrder(String apiKey,
         String documentNumber);
+
+    byte[] getUnReceivedParcelsCsv(String maxStorageDays);
 }

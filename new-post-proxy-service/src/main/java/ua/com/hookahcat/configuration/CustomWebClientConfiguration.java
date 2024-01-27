@@ -1,7 +1,7 @@
 package ua.com.hookahcat.configuration;
 
 
-import static ua.com.hookahcat.common.Constants.WEB_CLIENT_BUFFER_SIZE;
+import static ua.com.hookahcat.util.Constants.WEB_CLIENT_BUFFER_SIZE;
 
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;

@@ -1,28 +1,28 @@
 package ua.com.hookahcat.service.impl;
 
 import static net.logstash.logback.argument.StructuredArguments.kv;
-import static ua.com.hookahcat.common.Constants.CalledMethods.CHECK_POSSIBILITY_CREATE_RETURN;
-import static ua.com.hookahcat.common.Constants.CalledMethods.GET_DOCUMENT_LIST;
-import static ua.com.hookahcat.common.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
-import static ua.com.hookahcat.common.Constants.CalledMethods.SAVE;
-import static ua.com.hookahcat.common.Constants.DATE_TIME_FROM;
-import static ua.com.hookahcat.common.Constants.DATE_TIME_TO;
-import static ua.com.hookahcat.common.Constants.DOCUMENT_NUMBER;
-import static ua.com.hookahcat.common.Constants.MAX_STORAGE_DAYS;
-import static ua.com.hookahcat.common.Constants.ModelsNames.ADDITIONAL_SERVICE;
-import static ua.com.hookahcat.common.Constants.ModelsNames.INTERNET_DOCUMENT;
-import static ua.com.hookahcat.common.Constants.ModelsNames.TRACKING_DOCUMENT;
-import static ua.com.hookahcat.common.Constants.ONE;
-import static ua.com.hookahcat.common.Constants.ORDER_TYPE_CARGO_RETURN;
-import static ua.com.hookahcat.common.Constants.PAGE;
-import static ua.com.hookahcat.common.Constants.PAYMENT_METHOD_CASH;
-import static ua.com.hookahcat.common.Constants.PHONE_NUMBER;
-import static ua.com.hookahcat.common.Constants.Patterns.DATE_PATTERN;
-import static ua.com.hookahcat.common.Constants.Patterns.DATE_TIME_PATTERN;
-import static ua.com.hookahcat.common.Constants.RETURN_ADDRESS_REF;
-import static ua.com.hookahcat.common.Constants.STATUS;
-import static ua.com.hookahcat.common.Constants.StateNames.ARRIVED;
-import static ua.com.hookahcat.common.Constants.ZERO;
+import static ua.com.hookahcat.util.Constants.CalledMethods.CHECK_POSSIBILITY_CREATE_RETURN;
+import static ua.com.hookahcat.util.Constants.CalledMethods.GET_DOCUMENT_LIST;
+import static ua.com.hookahcat.util.Constants.CalledMethods.GET_STATUS_DOCUMENTS;
+import static ua.com.hookahcat.util.Constants.CalledMethods.SAVE;
+import static ua.com.hookahcat.util.Constants.DATE_TIME_FROM;
+import static ua.com.hookahcat.util.Constants.DATE_TIME_TO;
+import static ua.com.hookahcat.util.Constants.DOCUMENT_NUMBER;
+import static ua.com.hookahcat.util.Constants.MAX_STORAGE_DAYS;
+import static ua.com.hookahcat.util.Constants.ModelsNames.ADDITIONAL_SERVICE;
+import static ua.com.hookahcat.util.Constants.ModelsNames.INTERNET_DOCUMENT;
+import static ua.com.hookahcat.util.Constants.ModelsNames.TRACKING_DOCUMENT;
+import static ua.com.hookahcat.util.Constants.ONE;
+import static ua.com.hookahcat.util.Constants.ORDER_TYPE_CARGO_RETURN;
+import static ua.com.hookahcat.util.Constants.PAGE;
+import static ua.com.hookahcat.util.Constants.PAYMENT_METHOD_CASH;
+import static ua.com.hookahcat.util.Constants.PHONE_NUMBER;
+import static ua.com.hookahcat.util.Constants.Patterns.DATE_PATTERN;
+import static ua.com.hookahcat.util.Constants.Patterns.DATE_TIME_PATTERN;
+import static ua.com.hookahcat.util.Constants.RETURN_ADDRESS_REF;
+import static ua.com.hookahcat.util.Constants.STATUS;
+import static ua.com.hookahcat.util.Constants.StateNames.ARRIVED;
+import static ua.com.hookahcat.util.Constants.ZERO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,7 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
+import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnProperties;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnRequest;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
@@ -62,12 +64,17 @@ import ua.com.hookahcat.service.ProxyService;
 public class NewPostServiceProxyImpl extends ProxyService implements NewPostServiceProxy {
 
     public NewPostServiceProxyImpl(NovaPoshtaApiProperties novaPoshtaApiProperties,
-        WebClient webClient) {
+        WebClient webClient, CsvProperties csvProperties, CsvService csvService) {
         super(webClient);
         this.novaPoshtaApiProperties = novaPoshtaApiProperties;
+        this.csvProperties = csvProperties;
+        this.csvService = csvService;
     }
 
     private final NovaPoshtaApiProperties novaPoshtaApiProperties;
+    private final CsvProperties csvProperties;
+    private final CsvService csvService;
+
 
     @Override
     public DocumentsStatusResponse getDocumentsStatus(DocumentsStatusRequest statusRequest) {
@@ -137,6 +144,17 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
         return post(novaPoshtaApiProperties.getBaseUrl(), Map.of(),
             createParcelReturnToWarehouseRequest(apiKey, documentNumber, returnAddressRef),
             ParcelReturnResponse.class);
+    }
+
+    @Override
+    public byte[] getUnReceivedParcelsCsv(String maxStorageDays) {
+        var unreceivedParcelsData = getUnreceivedParcelsByMaxStorageDays(maxStorageDays);
+
+        if (CollectionUtils.isNotEmpty(unreceivedParcelsData)) {
+            return csvService.exportData(unreceivedParcelsData,
+                csvProperties.getResponseHeaders(), csvProperties.getResponseFields());
+        }
+        return new byte[0];
     }
 
     @Override
@@ -298,5 +316,12 @@ public class NewPostServiceProxyImpl extends ProxyService implements NewPostServ
                 .paymentMethod(PAYMENT_METHOD_CASH)
                 .build())
             .build();
+    }
+
+    private List<DocumentDataResponse> getUnreceivedParcelsByMaxStorageDays(String maxStorageDays) {
+        var unreceivedParcelsData = getUnreceivedParcels(novaPoshtaApiProperties.getApiKey(),
+            novaPoshtaApiProperties.getSenderPhoneNumber(), maxStorageDays);
+        log.info("Found {} unreceived parcels", unreceivedParcelsData.size());
+        return unreceivedParcelsData;
     }
 }
