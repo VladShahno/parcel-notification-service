@@ -32,13 +32,16 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.MessageSource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 import ua.com.hookahcat.configuration.CsvProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties.ReturnOrder;
 import ua.com.hookahcat.csvsdk.service.CsvService;
+import ua.com.hookahcat.csvsdk.service.MessageService;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnProperties;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnRequest;
 import ua.com.hookahcat.model.request.DocumentListMethodProperties;
@@ -52,17 +55,16 @@ import ua.com.hookahcat.model.request.TrackingDocument;
 import ua.com.hookahcat.model.request.TrackingDocumentMethodProperties;
 import ua.com.hookahcat.service.impl.NewPostServiceProxyImpl;
 
-@SpringBootTest
+@ExtendWith(SpringExtension.class)
 class NewPostServiceProxyImplTest {
 
-    private WireMockServer wireMockServer;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private NewPostServiceProxyImpl newPostServiceProxy;
     @Autowired
-    private CsvService csvService;
-
+    private MessageSource messageSource;
+    private WireMockServer wireMockServer;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final MessageService messageService = new MessageService(messageSource);
+    private final CsvService csvService = new CsvService(messageService);
+    private NewPostServiceProxyImpl newPostServiceProxy;
     private static final String MOCK_API_KEY = "mockApiKey";
     private static final String DOCUMENT_NUMBER = "documentNumber";
     private static final String SUB_TYPE_RETURN_REASON = "subTypeReturnReason";
