@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -237,7 +238,17 @@ class NewPostServiceProxyImplTest {
 
         assertNotNull(result);
         assertTrue(result.length > 0);
+
+        String expectedNormalized =
+            "ЕН,ПІБ отримувача з накладної,Номер телефону отримувача,Місто отримувача,Фактична дата доставки,Сума зворотної доставки,Поточне значення суми грошового переказу,Вартість доставки,Дата початку платного зберігання,Сума оплати по ЕН,Дата повернення вантажу,Дата початку зберігання (після не отримання),Оголошена вартість,Вартість зберігання\n"
+                + "20450854620708,Мостицький Роман,380505559309,Херсон,2024-01-12 17:12:12,350,350.000,70,2024-01-20 17:12:12,467,,2024-01-20,350,20";
+
+        String[] expectedLines = expectedNormalized.split("\\r?\\n");
+        String[] actualLines = text.split("\\r?\\n");
+
+        assertArrayEquals(expectedLines, actualLines);
     }
+
 
     @Test
     void testShouldReturnNoUnReceivedParcelsCsv() throws JsonProcessingException {
