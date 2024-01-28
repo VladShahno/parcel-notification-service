@@ -1,4 +1,4 @@
-package ua.com.hookahcat.model.response;
+package ua.com.hookahcat.model.response.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

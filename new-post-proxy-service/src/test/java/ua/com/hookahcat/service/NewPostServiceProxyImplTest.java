@@ -43,17 +43,17 @@ import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties.ReturnOrder;
 import ua.com.hookahcat.csvsdk.service.CsvService;
 import ua.com.hookahcat.csvsdk.service.MessageService;
-import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnProperties;
+import ua.com.hookahcat.model.request.properties.CheckPossibilityCreateReturnProperties;
 import ua.com.hookahcat.model.request.CheckPossibilityCreateReturnRequest;
-import ua.com.hookahcat.model.request.DocumentListMethodProperties;
+import ua.com.hookahcat.model.request.properties.DocumentListMethodProperties;
 import ua.com.hookahcat.model.request.DocumentListRequest;
 import ua.com.hookahcat.model.request.DocumentsStatusRequest;
-import ua.com.hookahcat.model.request.ParcelReturnToAddressMethodProperties;
+import ua.com.hookahcat.model.request.properties.ParcelReturnToAddressMethodProperties;
 import ua.com.hookahcat.model.request.ParcelReturnToAddressRequest;
-import ua.com.hookahcat.model.request.ParcelReturnToWarehouseProperties;
+import ua.com.hookahcat.model.request.properties.ParcelReturnToWarehouseProperties;
 import ua.com.hookahcat.model.request.ParcelReturnToWarehouseRequest;
-import ua.com.hookahcat.model.request.TrackingDocument;
-import ua.com.hookahcat.model.request.TrackingDocumentMethodProperties;
+import ua.com.hookahcat.model.request.properties.TrackingDocument;
+import ua.com.hookahcat.model.request.properties.TrackingDocumentMethodProperties;
 import ua.com.hookahcat.service.impl.NewPostServiceProxyImpl;
 
 @ExtendWith(SpringExtension.class)

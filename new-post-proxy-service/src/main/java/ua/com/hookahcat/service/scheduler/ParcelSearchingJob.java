@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ua.com.hookahcat.configuration.NovaPoshtaApiProperties;
-import ua.com.hookahcat.model.response.DocumentDataResponse;
+import ua.com.hookahcat.model.response.data.DocumentDataResponse;
 import ua.com.hookahcat.notification.configuration.EmailNotificationProperties;
 import ua.com.hookahcat.notification.model.EmailNotificationData;
 import ua.com.hookahcat.notification.service.EmailNotificationService;

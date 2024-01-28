@@ -1,25 +1,15 @@
 package ua.com.hookahcat.model.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import ua.com.hookahcat.model.request.properties.DocumentListMethodProperties;
 
 @Data
-@Builder
-public class DocumentListRequest {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class DocumentListRequest extends BaseApiRequest<DocumentListMethodProperties> {
 
-    @JsonProperty("apiKey")
-    private String apiKey;
-
-    @JsonProperty("modelName")
-    @Schema(hidden = true)
-    private String modelName;
-
-    @JsonProperty("calledMethod")
-    @Schema(hidden = true)
-    private String calledMethod;
-
-    @JsonProperty("methodProperties")
-    private DocumentListMethodProperties methodProperties;
 }

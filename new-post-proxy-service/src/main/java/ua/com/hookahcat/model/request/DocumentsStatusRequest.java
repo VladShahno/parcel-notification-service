@@ -1,25 +1,15 @@
 package ua.com.hookahcat.model.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import ua.com.hookahcat.model.request.properties.TrackingDocumentMethodProperties;
 
 @Data
-@Builder
-public class DocumentsStatusRequest {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class DocumentsStatusRequest extends BaseApiRequest<TrackingDocumentMethodProperties> {
 
-    @JsonProperty("apiKey")
-    private String apiKey;
-
-    @JsonProperty("modelName")
-    @Schema(hidden = true)
-    private String modelName;
-
-    @JsonProperty("calledMethod")
-    @Schema(hidden = true)
-    private String calledMethod;
-
-    @JsonProperty("methodProperties")
-    private TrackingDocumentMethodProperties methodProperties;
 }

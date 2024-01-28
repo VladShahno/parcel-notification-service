@@ -1,4 +1,4 @@
-package ua.com.hookahcat.model.request;
+package ua.com.hookahcat.model.request.properties;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;

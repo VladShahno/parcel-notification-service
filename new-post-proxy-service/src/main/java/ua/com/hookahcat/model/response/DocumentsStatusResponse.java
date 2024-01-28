@@ -1,19 +1,19 @@
 package ua.com.hookahcat.model.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import ua.com.hookahcat.model.response.data.DocumentDataResponse;
 
 @Data
-@Builder
-public class DocumentsStatusResponse {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class DocumentsStatusResponse extends BaseApiResponse<DocumentDataResponse> {
 
-    private boolean success;
-    private List<DocumentDataResponse> data;
-    private List<String> errors;
+    @JsonProperty("info")
     private List<String> info;
-    private List<String> messageCodes;
-    private List<String> errorCodes;
-    private List<String> warningCodes;
-    private List<String> infoCodes;
 }

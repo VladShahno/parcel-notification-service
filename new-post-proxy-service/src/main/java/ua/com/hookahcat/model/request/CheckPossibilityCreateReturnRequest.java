@@ -1,25 +1,16 @@
 package ua.com.hookahcat.model.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import ua.com.hookahcat.model.request.properties.CheckPossibilityCreateReturnProperties;
 
 @Data
-@Builder
-public class CheckPossibilityCreateReturnRequest {
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class CheckPossibilityCreateReturnRequest extends
+    BaseApiRequest<CheckPossibilityCreateReturnProperties> {
 
-    @JsonProperty("apiKey")
-    private String apiKey;
-
-    @JsonProperty("modelName")
-    @Schema(hidden = true)
-    private String modelName;
-
-    @JsonProperty("calledMethod")
-    @Schema(hidden = true)
-    private String calledMethod;
-
-    @JsonProperty("methodProperties")
-    private CheckPossibilityCreateReturnProperties methodProperties;
 }

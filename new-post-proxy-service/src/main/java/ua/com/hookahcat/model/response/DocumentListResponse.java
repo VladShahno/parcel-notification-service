@@ -1,34 +1,15 @@
 package ua.com.hookahcat.model.response;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import ua.com.hookahcat.model.response.data.DocumentListDataResponse;
 
 @Data
-public class DocumentListResponse {
-
-    @JsonProperty("success")
-    private boolean success;
-
-    @JsonProperty("data")
-    private List<DocumentListDataResponse> data;
-
-    @JsonProperty("errors")
-    private List<String> errors;
-
-    @JsonProperty("warnings")
-    private List<String> warnings;
-
-    @JsonProperty("messageCodes")
-    private List<String> messageCodes;
-
-    @JsonProperty("errorCodes")
-    private List<String> errorCodes;
-
-    @JsonProperty("warningCodes")
-    private List<String> warningCodes;
-
-    @JsonProperty("infoCodes")
-    private List<String> infoCodes;
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class DocumentListResponse extends BaseApiResponse<DocumentListDataResponse> {
 
 }
