@@ -99,7 +99,7 @@ public class ParcelSearchingJob {
 
     private void sendEmailWithNotReceivedParcelsData(byte[] exportedParcelsData, String subject,
         String message) {
-        if (Objects.nonNull(exportedParcelsData)) {
+        if (Objects.nonNull(exportedParcelsData) && exportedParcelsData.length > 0) {
             emailNotificationService.sendEmailNotification(
                 prepareEmailNotificationData(exportedParcelsData, NOT_RECEIVED_PARCELS, subject,
                     message));
